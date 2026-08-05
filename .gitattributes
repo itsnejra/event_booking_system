@@ -1,0 +1,8 @@
+# Normalise line endings so the repository is identical regardless of the machine it was cloned on.
+* text=auto
+
+*.cs text diff=csharp
+*.csproj text
+*.slnx text
+*.props text
+*.md text

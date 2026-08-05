@@ -1,0 +1,67 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,md}]
+indent_size = 2
+
+[*.cs]
+# Namespaces and usings
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:warning
+
+# Expression preferences
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_prefer_braces = true:warning
+csharp_style_prefer_switch_expression = true:suggestion
+csharp_style_prefer_pattern_matching = true:suggestion
+
+# Modifiers and readonly
+dotnet_style_readonly_field = true:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
+
+# Naming: private fields use _camelCase
+dotnet_naming_rule.private_fields_underscore.severity = warning
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_prefix
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.underscore_prefix.capitalization = camel_case
+dotnet_naming_style.underscore_prefix.required_prefix = _
+
+# Deliberate deviations, each with a reason.
+
+# CA1716 forbids type names that are keywords in another .NET language (Event, Next, ...).
+# It exists so that a public library stays usable from VB and F#. This is an application, not a
+# library, and "Event" is the word the business uses - renaming the central concept of the domain to
+# please a language nobody here writes would be a bad trade.
+dotnet_diagnostic.CA1716.severity = none
+
+# CA1032 wants the three standard constructors on every exception. Our domain exceptions carry
+# structured context (which ticket type, how many left) and a bare parameterless constructor would
+# only allow an exception that cannot say what went wrong.
+dotnet_diagnostic.CA1032.severity = none
+
+# CA1711 reserves the "EventHandler" suffix for .NET delegate event handlers. IDomainEventHandler<T>
+# is a domain event handler in the DDD sense, and that is the name every reader of this code expects.
+dotnet_code_quality.CA1711.allowed_suffixes = EventHandler
+
+# No logging framework in this project; console output is the presentation layer's job.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1303.severity = none
+
+[tests/**/*.cs]
+# Test methods are named Method_Scenario_Expectation. The underscores are the convention that makes a
+# failing test readable in a report; CA1707 is written for public API surface, which tests are not.
+dotnet_diagnostic.CA1707.severity = none
