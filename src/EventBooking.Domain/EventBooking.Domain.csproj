@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The domain layer deliberately has no references at all - no NuGet packages, no other projects.
+    If this file ever grows an <ItemGroup>, something has leaked into the domain that does not belong there.
+  -->
+
+</Project>
