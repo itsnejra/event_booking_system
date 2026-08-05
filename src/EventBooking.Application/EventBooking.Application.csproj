@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventBooking.Domain\EventBooking.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Abstractions only: the layer describes how it wants to be wired, it does not host a container. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>
