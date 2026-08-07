@@ -46,7 +46,7 @@ public sealed class Booking : AggregateRoot<BookingId>
 
     public EventId EventId { get; }
 
-    public IReadOnlyList<BookingLine> Lines => _lines;
+    public IReadOnlyList<BookingLine> Lines => _lines.AsReadOnly();
 
     public BookingStatus Status { get; private set; } = BookingStatus.Pending;
 

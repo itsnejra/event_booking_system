@@ -58,9 +58,9 @@ public abstract class Event : AggregateRoot<EventId>
 
     public string? CancellationReason { get; private set; }
 
-    public IReadOnlyList<TicketType> TicketTypes => _ticketTypes;
+    public IReadOnlyList<TicketType> TicketTypes => _ticketTypes.AsReadOnly();
 
-    public IReadOnlyList<WaitlistEntry> Waitlist => _waitlist;
+    public IReadOnlyList<WaitlistEntry> Waitlist => _waitlist.AsReadOnly();
 
     // --- what the subclasses decide -------------------------------------------------------------
 

@@ -19,7 +19,7 @@ public sealed class PricingEngine
 {
     public static readonly Percentage DefaultMaximumDiscount = Percentage.Of(35m);
 
-    private readonly IReadOnlyList<IPricingRule> _rules;
+    private readonly List<IPricingRule> _rules;
     private readonly Percentage _maximumDiscount;
 
     public PricingEngine(IEnumerable<IPricingRule> rules)
@@ -36,7 +36,7 @@ public sealed class PricingEngine
         _maximumDiscount = maximumDiscount;
     }
 
-    public IReadOnlyList<IPricingRule> Rules => _rules;
+    public IReadOnlyList<IPricingRule> Rules => _rules.AsReadOnly();
 
     public Percentage MaximumDiscount => _maximumDiscount;
 

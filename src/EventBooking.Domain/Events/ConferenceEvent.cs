@@ -31,7 +31,7 @@ public sealed class ConferenceEvent : Event
 
     public string Topic { get; }
 
-    public IReadOnlyList<ConferenceSession> Sessions => _sessions;
+    public IReadOnlyList<ConferenceSession> Sessions => _sessions.AsReadOnly();
 
     public IReadOnlyCollection<string> Tracks =>
         [.. _sessions.Select(session => session.Track).Distinct(StringComparer.OrdinalIgnoreCase).Order()];
