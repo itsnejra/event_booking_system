@@ -98,7 +98,7 @@ internal sealed class TestHost : IDisposable
         });
 
         AddTicketType(concert.Id, "Parter", TicketTier.Standard, 40m, seats);
-        Catalog.Publish(concert.Id);
+        Catalog.Publish(concert.Id, concert.OrganizerId);
         return concert;
     }
 
@@ -116,18 +116,25 @@ internal sealed class TestHost : IDisposable
         });
 
         AddTicketType(workshop.Id, "Kotizacija", TicketTier.Standard, 200m, seats);
-        Catalog.Publish(workshop.Id);
+        Catalog.Publish(workshop.Id, workshop.OrganizerId);
         return workshop;
     }
 
+    /// <summary>
+    /// Acts as the event's own organiser, so tests that are not about authorisation stay short.
+    /// The ones that <em>are</em> about it call the service directly with a different organiser.
+    /// </summary>
     public TicketType AddTicketType(
         EventId eventId,
         string name,
         TicketTier tier,
         decimal price,
         int capacity,
-        DateRange? salesWindow = null) =>
-        Catalog.AddTicketType(eventId, new AddTicketTypeRequest
+        DateRange? salesWindow = null)
+    {
+        var owner = Catalog.GetById(eventId).OrganizerId;
+
+        return Catalog.AddTicketType(eventId, owner, new AddTicketTypeRequest
         {
             Name = name,
             Tier = tier,
@@ -135,6 +142,7 @@ internal sealed class TestHost : IDisposable
             Capacity = capacity,
             SalesWindow = salesWindow,
         });
+    }
 
     public DateRange Schedule(double daysAhead, double hours = 3) =>
         DateRange.Starting(Clock.UtcNow.AddDays(daysAhead), TimeSpan.FromHours(hours));

@@ -66,7 +66,9 @@ public sealed class WorkshopEvent : Event
             return;
         }
 
-        Cancel(
+        // CancelCore, not Cancel: this is the system calling the workshop off, not the organiser,
+        // so there is nobody to authorise.
+        CancelCore(
             $"Only {TicketsSold} of the required {MinimumAttendees} attendee(s) signed up.",
             now);
     }

@@ -61,7 +61,7 @@ public sealed class EventCatalogServiceTests
 
         // A day before the concert the normal policy would refund nothing at all.
         host.Clock.MoveTo(concert.Schedule.Start.AddDays(-1));
-        var affected = host.Catalog.Cancel(concert.Id, "Bolest izvodjaca");
+        var affected = host.Catalog.Cancel(concert.Id, concert.OrganizerId, "Bolest izvodjaca");
 
         Assert.Equal(2, affected);
         Assert.Equal(EventStatus.Cancelled, concert.Status);
@@ -79,7 +79,7 @@ public sealed class EventCatalogServiceTests
         var booking = BookAndPay(host, concert, 1);
         host.Bookings.Cancel(booking.Id, "Vec otkazano");
 
-        var affected = host.Catalog.Cancel(concert.Id, "Otkazano");
+        var affected = host.Catalog.Cancel(concert.Id, concert.OrganizerId, "Otkazano");
 
         Assert.Equal(0, affected);
     }
@@ -91,7 +91,7 @@ public sealed class EventCatalogServiceTests
         var concert = host.PublishConcert(seats: 20, daysAhead: 45);
         var booking = BookAndPay(host, concert, 2);
 
-        host.Catalog.Reschedule(concert.Id, host.Schedule(daysAhead: 90));
+        host.Catalog.Reschedule(concert.Id, concert.OrganizerId, host.Schedule(daysAhead: 90));
 
         Assert.Equal(BookingStatus.Confirmed, booking.Status);
         Assert.Equal(2, concert.TicketsSold);

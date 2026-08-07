@@ -15,7 +15,7 @@ dotnet test
 ```
 
 Aplikacija se pokreće sa napunjenim demo podacima (četiri događaja, četiri kupca, deset rezervacija),
-pa se sve niže opisano može odmah vidjeti u radu. Testova ima 228 i prolaze svi.
+pa se sve niže opisano može odmah vidjeti u radu. Testova ima 241 i prolaze svi.
 
 ---
 
@@ -191,6 +191,30 @@ Sve kolekcije su izložene kao `IReadOnlyList<T>`, svi setteri su `private set`,
 mjesto zauzme je `Event.Reserve`. Preprodaja nije spriječena provjerom na pravom mjestu — spriječena
 je time što drugog mjesta nema.
 
+### Uloge i vlasništvo
+
+`User` je apstraktna, a `Customer` i `Organizer` su podklase — ne zastavica na jednoj klasi. Uloga se
+provjerava na tri mjesta, i svako od njih rješava drugu vrstu greške:
+
+| Provjera | Gdje | Šta sprječava |
+|---|---|---|
+| Događaje kreira samo organizator | `EventCatalogService` | kupac koji pokušava biti organizator |
+| Rezerviše samo kupac | `BookingService` | organizator koji rezerviše svoj događaj |
+| **Događaj mijenja samo njegov vlasnik** | `Event.EnsureManagedBy` | organizator A koji otkazuje događaj organizatora B |
+
+Treća je najvažnija i namjerno **živi u agregatu**, a ne u servisu. Vlasništvo je poslovno pravilo
+(„događaj pripada onome ko ga je napravio"), pa `Publish`, `Cancel`, `Reschedule`, `AddTicketType` i
+`AddSession` traže identitet pozivaoca kao parametar. Nijedan servis to ne može zaobići zaboravivši
+provjeru — kompajler ga tjera da odgovori na pitanje *ko ovo radi*.
+
+Jedini izuzetak je `CancelCore`, `protected` metoda kojom radionica sama sebe otkazuje kad ne skupi
+polaznike. Tu nema osobe koju bi trebalo autorizovati, a `protected` znači da servis ne može tim
+putem preskočiti provjeru.
+
+U konzoli se ista uloga koristi za filtriranje menija: `IScreen` deklariše `RequiredRole`, pa kupac
+vidi pretragu i svoje rezervacije, a organizator upravljanje događajima i izvještaje. Filtriranje je
+jedan `Where` u `MainMenu` — ekran se nikad ne mora braniti sam.
+
 ### Vrijednosni objekti
 
 `Money`, `Percentage`, `DateRange`, `EmailAddress`, `BookingReference` i jaki identifikatori
@@ -230,12 +254,12 @@ uživo, umjesto u dokumentaciji. U produkciji se registruje `SystemClock` i niš
 
 ## Testovi
 
-228 testa, podijeljena po tome šta dokazuju:
+241 test, podijeljen po tome šta dokazuju:
 
 | Projekat | Šta pokriva |
 |---|---|
-| `EventBooking.Domain.Tests` (171) | Pravila u izolaciji: aritmetika novca, invarijante alokacije, životni ciklus događaja, pravila po tipu događaja, prelasci stanja rezervacije, slaganje popusta i granica, politike povrata, kompozicija specifikacija |
-| `EventBooking.Application.Tests` (57) | Cijeli tokovi kroz stvarne servise, stvarni domen i in-memory repozitorije |
+| `EventBooking.Domain.Tests` (179) | Pravila u izolaciji: aritmetika novca, invarijante alokacije, životni ciklus događaja, pravila po tipu događaja, vlasništvo nad događajem, prelasci stanja rezervacije, slaganje popusta i granica, politike povrata, kompozicija specifikacija |
+| `EventBooking.Application.Tests` (62) | Cijeli tokovi kroz stvarne servise, stvarni domen i in-memory repozitorije |
 
 Aplikacijski testovi **ne koriste mock biblioteke**. Ono što je ovdje zanimljivo *jeste* način na
 koji dijelovi rade zajedno; mock bi samo potvrdio da test poznaje vlastito ožičenje. Umjesto toga,
@@ -250,6 +274,8 @@ Nekoliko testova koji nose najviše težine:
 - `AWorkshopThatDidNotFillUpCancelsItselfAndRefundsEveryone` — cijeli lanac: agregat odluči, servis
   primijeti, rezervacije se vrate.
 - `ReleasedSeats_ReachTheFrontOfTheWaitingList` — lista čekanja radi bez ijednog spominjanja u servisu.
+- `AFailedCancellationLeavesTheBookingsUntouched` — odbijena autorizacija ne ostavlja polovično
+  otkazan događaj.
 - `ATierGrantedUpFront_IsNotLostOnTheNextBooking` — greška koju je otkrilo pokretanje aplikacije, pa
   je dobila test.
 
@@ -277,8 +303,8 @@ rezervacije. Moglo je i preko rukovaoca domenskog događaja, ali to skriva tok i
 **Notifikacije završavaju u `NotificationInbox`.** Ispis usred menija bi razbio ekran; ovako se u
 meniju „Notification inbox“ vidi tačno ono što bi mail server dobio.
 
-**Sesija drži i kupca i organizatora istovremeno.** Pojednostavljenje demoa, da se recenzent može
-kretati kroz obje strane sistema bez prijavljivanja. Model to ne pretpostavlja.
+**Nema prave prijave.** Uloge i vlasništvo se provjeravaju, ali identitet se bira iz menija umjesto
+lozinkom. Autentifikacija je odvojen problem od autorizacije; ovdje je riješen samo drugi.
 
 **Tri analizatorska pravila su isključena**, svako sa obrazloženjem u `.editorconfig` — najvažnije
 CA1716, koje traži da se klasa `Event` preimenuje jer je `Event` ključna riječ u VB-u. Ovo je

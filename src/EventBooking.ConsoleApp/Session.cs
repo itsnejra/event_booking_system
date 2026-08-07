@@ -3,31 +3,29 @@ using EventBooking.Domain.Users;
 namespace EventBooking.ConsoleApp;
 
 /// <summary>
-/// Who the demo is currently acting as.
+/// Who is signed in. Exactly one person at a time, with a role - which is what the menu filters on.
 /// </summary>
 /// <remarks>
-/// A real system would authenticate and hold one identity at a time. Here both a customer and an
-/// organiser are signed in at once so that a reviewer can move between the two sides of the system
-/// without logging in and out - a deliberate simplification of the demo, not of the model.
+/// <see cref="Customer"/> and <see cref="Organizer"/> narrow the signed-in user to the role a screen
+/// needs. They throw rather than return null, because a screen that asks for the wrong one is a
+/// wiring mistake: the menu already refuses to show a screen to a role that cannot use it.
 /// </remarks>
 public sealed class Session
 {
-    private Customer? _customer;
-    private Organizer? _organizer;
+    private User? _user;
+
+    public User CurrentUser =>
+        _user ?? throw new InvalidOperationException("Nobody is signed in.");
+
+    public UserRole CurrentRole => CurrentUser.Role;
 
     public Customer Customer =>
-        _customer ?? throw new InvalidOperationException("No customer is signed in.");
+        CurrentUser as Customer
+        ?? throw new InvalidOperationException($"{CurrentUser.FullName} is signed in as an organiser, not a customer.");
 
     public Organizer Organizer =>
-        _organizer ?? throw new InvalidOperationException("No organiser is signed in.");
+        CurrentUser as Organizer
+        ?? throw new InvalidOperationException($"{CurrentUser.FullName} is signed in as a customer, not an organiser.");
 
-    public void SignIn(Customer customer, Organizer organizer)
-    {
-        _customer = customer;
-        _organizer = organizer;
-    }
-
-    public void SwitchCustomer(Customer customer) => _customer = customer;
-
-    public void SwitchOrganizer(Organizer organizer) => _organizer = organizer;
+    public void SignIn(User user) => _user = user;
 }

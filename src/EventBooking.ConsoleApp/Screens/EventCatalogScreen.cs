@@ -4,6 +4,7 @@ using EventBooking.ConsoleApp.Ui;
 using EventBooking.Domain.Abstractions;
 using EventBooking.Domain.Bookings;
 using EventBooking.Domain.Events;
+using EventBooking.Domain.Users;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.ConsoleApp.Screens;
@@ -21,6 +22,8 @@ public sealed class EventCatalogScreen(
     private static readonly string[] EventActions = ["Book tickets", "Join the waiting list"];
 
     public string Title => "Browse and book events";
+
+    public UserRole? RequiredRole => UserRole.Customer;
 
     public void Show()
     {

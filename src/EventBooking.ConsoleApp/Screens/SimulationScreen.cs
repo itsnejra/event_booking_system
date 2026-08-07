@@ -1,5 +1,6 @@
 using EventBooking.Application.Maintenance;
 using EventBooking.ConsoleApp.Ui;
+using EventBooking.Domain.Users;
 using EventBooking.Infrastructure.Time;
 
 namespace EventBooking.ConsoleApp.Screens;
@@ -26,6 +27,9 @@ public sealed class SimulationScreen(
     private const string ResetOption = "Reset the clock to real time";
 
     public string Title => "Simulation - move the clock, run maintenance";
+
+    /// <summary>A demo tool rather than part of the product, so it is not tied to a role.</summary>
+    public UserRole? RequiredRole => null;
 
     public void Show()
     {

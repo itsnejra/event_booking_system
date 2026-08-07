@@ -46,8 +46,9 @@ public sealed class ConferenceEvent : Event
     /// </summary>
     public override IRefundPolicy RefundPolicy => RefundPolicies.FullUntil(TimeSpan.FromDays(7));
 
-    public void AddSession(ConferenceSession session)
+    public void AddSession(UserId actingOrganizer, ConferenceSession session)
     {
+        EnsureManagedBy(actingOrganizer);
         Guard.NotNull(session);
 
         if (Status is EventStatus.Cancelled or EventStatus.Completed)

@@ -1,12 +1,15 @@
 using EventBooking.Application.Reporting;
 using EventBooking.ConsoleApp.Ui;
+using EventBooking.Domain.Users;
 
 namespace EventBooking.ConsoleApp.Screens;
 
-/// <summary>Read-only view of how the platform is doing.</summary>
+/// <summary>Read-only view of how the platform is doing. Organisers only.</summary>
 public sealed class ReportsScreen(ReportingService reporting, IUserInterface ui) : IScreen
 {
     public string Title => "Reports";
+
+    public UserRole? RequiredRole => UserRole.Organizer;
 
     public void Show()
     {

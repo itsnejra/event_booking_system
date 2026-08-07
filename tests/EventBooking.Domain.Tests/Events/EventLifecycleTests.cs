@@ -18,16 +18,16 @@ public sealed class EventLifecycleTests
     {
         var concert = Given.Concert();
 
-        Assert.Throws<BusinessRuleViolationException>(() => concert.Publish(Given.Now));
+        Assert.Throws<BusinessRuleViolationException>(() => concert.Publish(Given.OrganizerId, Given.Now));
     }
 
     [Fact]
     public void Publish_WhenTheEventHasAlreadyStarted_Throws()
     {
         var concert = Given.Concert(daysAhead: 1);
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(30m), 10);
+        concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(30m), 10);
 
-        Assert.Throws<BusinessRuleViolationException>(() => concert.Publish(Given.Now.AddDays(2)));
+        Assert.Throws<BusinessRuleViolationException>(() => concert.Publish(Given.OrganizerId, Given.Now.AddDays(2)));
     }
 
     [Fact]
@@ -43,17 +43,17 @@ public sealed class EventLifecycleTests
     {
         var concert = Given.PublishedConcert();
 
-        Assert.Throws<InvalidStateTransitionException>(() => concert.Publish(Given.Now));
+        Assert.Throws<InvalidStateTransitionException>(() => concert.Publish(Given.OrganizerId, Given.Now));
     }
 
     [Fact]
     public void AddTicketType_BeyondVenueCapacity_Throws()
     {
         var concert = Given.Concert(venue: Given.Venue(100));
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(30m), 80);
+        concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(30m), 80);
 
         var exception = Assert.Throws<BusinessRuleViolationException>(
-            () => concert.AddTicketType("Tribina", TicketTier.Standard, Money.Of(20m), 30));
+            () => concert.AddTicketType(Given.OrganizerId, "Tribina", TicketTier.Standard, Money.Of(20m), 30));
 
         Assert.Contains("100", exception.Message, StringComparison.Ordinal);
     }
@@ -62,10 +62,10 @@ public sealed class EventLifecycleTests
     public void AddTicketType_WithADuplicateName_Throws()
     {
         var concert = Given.Concert();
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(30m), 50);
+        concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(30m), 50);
 
         Assert.Throws<BusinessRuleViolationException>(
-            () => concert.AddTicketType("parter", TicketTier.Vip, Money.Of(90m), 10));
+            () => concert.AddTicketType(Given.OrganizerId, "parter", TicketTier.Vip, Money.Of(90m), 10));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class EventLifecycleTests
         var concert = Given.Concert();
 
         Assert.Throws<CurrencyMismatchException>(
-            () => concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(30m, Currency.EUR), 50));
+            () => concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(30m, Currency.EUR), 50));
     }
 
     [Fact]
@@ -84,17 +84,17 @@ public sealed class EventLifecycleTests
         var tooLate = DateRange.Starting(Given.Now, TimeSpan.FromDays(30));
 
         Assert.Throws<BusinessRuleViolationException>(
-            () => concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(30m), 50, tooLate));
+            () => concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(30m), 50, tooLate));
     }
 
     [Fact]
     public void AddTicketType_ToACancelledEvent_Throws()
     {
         var concert = Given.PublishedConcert();
-        concert.Cancel("Otkazano", Given.Now);
+        concert.Cancel(Given.OrganizerId, "Otkazano", Given.Now);
 
         Assert.Throws<InvalidStateTransitionException>(
-            () => concert.AddTicketType("Novo", TicketTier.Standard, Money.Of(10m), 5));
+            () => concert.AddTicketType(Given.OrganizerId, "Novo", TicketTier.Standard, Money.Of(10m), 5));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class EventLifecycleTests
         var concert = Given.PublishedConcert();
         concert.ClearDomainEvents();
 
-        concert.Cancel("Bolest izvodjaca", Given.Now);
+        concert.Cancel(Given.OrganizerId, "Bolest izvodjaca", Given.Now);
 
         Assert.Equal(EventStatus.Cancelled, concert.Status);
         Assert.Equal("Bolest izvodjaca", concert.CancellationReason);
@@ -116,7 +116,7 @@ public sealed class EventLifecycleTests
         var concert = Given.PublishedConcert();
 
         Assert.Throws<BusinessRuleViolationException>(
-            () => concert.Reschedule(Given.Schedule(-1), Given.Now));
+            () => concert.Reschedule(Given.OrganizerId, Given.Schedule(-1), Given.Now));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class EventLifecycleTests
         var concert = Given.PublishedConcert();
         concert.ClearDomainEvents();
 
-        concert.Reschedule(Given.Schedule(60), Given.Now);
+        concert.Reschedule(Given.OrganizerId, Given.Schedule(60), Given.Now);
 
         var raised = Assert.Single(concert.DomainEvents.OfType<EventRescheduledDomainEvent>());
         Assert.Equal(Given.Schedule(45), raised.PreviousSchedule);
@@ -137,7 +137,7 @@ public sealed class EventLifecycleTests
     {
         var concert = Given.Concert();
 
-        concert.Reschedule(Given.Schedule(60), Given.Now);
+        concert.Reschedule(Given.OrganizerId, Given.Schedule(60), Given.Now);
 
         Assert.Empty(concert.DomainEvents);
     }

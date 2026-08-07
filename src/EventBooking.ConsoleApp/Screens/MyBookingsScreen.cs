@@ -3,6 +3,7 @@ using EventBooking.Application.Catalog;
 using EventBooking.ConsoleApp.Ui;
 using EventBooking.Domain.Abstractions;
 using EventBooking.Domain.Bookings;
+using EventBooking.Domain.Users;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.ConsoleApp.Screens;
@@ -16,6 +17,8 @@ public sealed class MyBookingsScreen(
     IUserInterface ui) : IScreen
 {
     public string Title => "My bookings";
+
+    public UserRole? RequiredRole => UserRole.Customer;
 
     public void Show()
     {

@@ -126,11 +126,11 @@ public sealed class DemoDataSeeder(
             Headliner = "Dubioza kolektiv",
         });
 
-        AddTicketType(concert.Id, "Parter", TicketTier.Standard, 45m, 3000);
-        AddTicketType(concert.Id, "Tribina", TicketTier.Standard, 35m, 2500);
-        AddTicketType(concert.Id, "VIP loza", TicketTier.Vip, 120m, 150);
+        AddTicketType(concert.Id, organizer.Id, "Parter", TicketTier.Standard, 45m, 3000);
+        AddTicketType(concert.Id, organizer.Id, "Tribina", TicketTier.Standard, 35m, 2500);
+        AddTicketType(concert.Id, organizer.Id, "VIP loza", TicketTier.Vip, 120m, 150);
 
-        catalog.Publish(concert.Id);
+        catalog.Publish(concert.Id, organizer.Id);
         return concert;
     }
 
@@ -154,37 +154,38 @@ public sealed class DemoDataSeeder(
             Topic = "Backend i arhitektura",
         });
 
-        conference.AddSession(new ConferenceSession(
+        conference.AddSession(organizer.Id, new ConferenceSession(
             "Modeliranje domene bez frameworka",
             "Amila Hodzic",
             "Arhitektura",
             new DateRange(firstDay.AddHours(1), firstDay.AddHours(2))));
 
-        conference.AddSession(new ConferenceSession(
+        conference.AddSession(organizer.Id, new ConferenceSession(
             "Testovi koji prezive refaktoring",
             "Damir Kovacevic",
             "Arhitektura",
             new DateRange(firstDay.AddHours(2), firstDay.AddHours(3))));
 
-        conference.AddSession(new ConferenceSession(
+        conference.AddSession(organizer.Id, new ConferenceSession(
             "EF Core: kada ORM radi protiv vas",
             "Nina Maric",
             "Baze podataka",
             new DateRange(firstDay.AddHours(1), firstDay.AddMinutes(150))));
 
-        AddTicketType(conference.Id, "Standard ulaznica", TicketTier.Standard, 180m, 400);
-        AddTicketType(conference.Id, "Studentska ulaznica", TicketTier.Student, 90m, 120);
+        AddTicketType(conference.Id, organizer.Id, "Standard ulaznica", TicketTier.Standard, 180m, 400);
+        AddTicketType(conference.Id, organizer.Id, "Studentska ulaznica", TicketTier.Student, 90m, 120);
 
         // A limited first batch: same event, but only on sale for the next ten days.
         AddTicketType(
             conference.Id,
+            organizer.Id,
             "Prvo kolo",
             TicketTier.Standard,
             140m,
             100,
             new DateRange(now.AddDays(-5), midnight.AddDays(10)));
 
-        catalog.Publish(conference.Id);
+        catalog.Publish(conference.Id, organizer.Id);
         return conference;
     }
 
@@ -207,9 +208,9 @@ public sealed class DemoDataSeeder(
             MinimumAttendees = 8,
         });
 
-        AddTicketType(workshop.Id, "Kotizacija", TicketTier.Standard, 150m, 20);
+        AddTicketType(workshop.Id, organizer.Id, "Kotizacija", TicketTier.Standard, 150m, 20);
 
-        catalog.Publish(workshop.Id);
+        catalog.Publish(workshop.Id, organizer.Id);
         return workshop;
     }
 
@@ -229,9 +230,9 @@ public sealed class DemoDataSeeder(
             MinimumAttendees = 4,
         });
 
-        AddTicketType(workshop.Id, "Kotizacija", TicketTier.Standard, 220m, 6);
+        AddTicketType(workshop.Id, organizer.Id, "Kotizacija", TicketTier.Standard, 220m, 6);
 
-        catalog.Publish(workshop.Id);
+        catalog.Publish(workshop.Id, organizer.Id);
         return workshop;
     }
 
@@ -277,12 +278,13 @@ public sealed class DemoDataSeeder(
 
     private void AddTicketType(
         EventId eventId,
+        UserId organizerId,
         string name,
         TicketTier tier,
         decimal price,
         int capacity,
         DateRange? salesWindow = null) =>
-        catalog.AddTicketType(eventId, new AddTicketTypeRequest
+        catalog.AddTicketType(eventId, organizerId, new AddTicketTypeRequest
         {
             Name = name,
             Tier = tier,

@@ -83,7 +83,7 @@ public sealed class NotificationTests
         host.Bookings.Cancel(drop.Id, "Ne mogu");
 
         host.Inbox.Clear();
-        host.Catalog.Reschedule(concert.Id, host.Schedule(daysAhead: 90));
+        host.Catalog.Reschedule(concert.Id, concert.OrganizerId, host.Schedule(daysAhead: 90));
 
         Assert.Single(host.Inbox.For(attending.Email));
         Assert.Empty(host.Inbox.For(cancelled.Email));
@@ -128,7 +128,7 @@ public sealed class NotificationTests
         }
 
         host.Inbox.Clear();
-        host.Catalog.Cancel(concert.Id, "Bolest izvodjaca");
+        host.Catalog.Cancel(concert.Id, concert.OrganizerId, "Bolest izvodjaca");
 
         Assert.Single(host.Inbox.For(first.Email));
         Assert.Single(host.Inbox.For(second.Email));

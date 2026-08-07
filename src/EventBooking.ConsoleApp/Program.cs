@@ -16,7 +16,7 @@ Console.OutputEncoding = Encoding.UTF8;
 using var provider = BuildServiceProvider();
 
 var demoData = provider.GetRequiredService<DemoDataSeeder>().Seed();
-provider.GetRequiredService<Session>().SignIn(demoData.Customers[0], demoData.Organizers[0]);
+provider.GetRequiredService<Session>().SignIn(demoData.Customers[0]);
 provider.GetRequiredService<MainMenu>().Run();
 
 static ServiceProvider BuildServiceProvider()

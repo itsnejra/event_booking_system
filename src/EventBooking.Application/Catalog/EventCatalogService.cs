@@ -78,11 +78,12 @@ public sealed class EventCatalogService(
         return workshop;
     }
 
-    public TicketType AddTicketType(EventId eventId, AddTicketTypeRequest request)
+    public TicketType AddTicketType(EventId eventId, UserId actingOrganizer, AddTicketTypeRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         return GetById(eventId).AddTicketType(
+            actingOrganizer,
             request.Name,
             request.Tier,
             request.Price,
@@ -90,17 +91,17 @@ public sealed class EventCatalogService(
             request.SalesWindow);
     }
 
-    public void Publish(EventId eventId)
+    public void Publish(EventId eventId, UserId actingOrganizer)
     {
         var @event = GetById(eventId);
-        @event.Publish(clock.UtcNow);
+        @event.Publish(actingOrganizer, clock.UtcNow);
         dispatcher.Dispatch(@event);
     }
 
-    public void Reschedule(EventId eventId, DateRange newSchedule)
+    public void Reschedule(EventId eventId, UserId actingOrganizer, DateRange newSchedule)
     {
         var @event = GetById(eventId);
-        @event.Reschedule(newSchedule, clock.UtcNow);
+        @event.Reschedule(actingOrganizer, newSchedule, clock.UtcNow);
         dispatcher.Dispatch(@event);
     }
 
@@ -109,10 +110,10 @@ public sealed class EventCatalogService(
     /// is cancelled first so that nothing new can be booked while the outstanding bookings are being
     /// refunded.
     /// </summary>
-    public int Cancel(EventId eventId, string reason)
+    public int Cancel(EventId eventId, UserId actingOrganizer, string reason)
     {
         var @event = GetById(eventId);
-        @event.Cancel(reason, clock.UtcNow);
+        @event.Cancel(actingOrganizer, reason, clock.UtcNow);
         dispatcher.Dispatch(@event);
 
         return bookings.CancelAllForEvent(@event, $"'{@event.Title}' was cancelled: {reason}").Count;

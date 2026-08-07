@@ -5,8 +5,8 @@ using EventBooking.Domain.Users;
 namespace EventBooking.ConsoleApp.Screens;
 
 /// <summary>
-/// The loop. It knows how to show a list of screens and how to survive anything they throw;
-/// it knows nothing whatsoever about booking.
+/// The loop. It knows how to show the screens the signed-in user is allowed to open, and how to
+/// survive anything they throw; it knows nothing whatsoever about booking.
 /// </summary>
 public sealed class MainMenu(
     IEnumerable<IScreen> screens,
@@ -24,9 +24,10 @@ public sealed class MainMenu(
 
         while (true)
         {
-            ShowMenu();
+            var available = AvailableScreens();
+            ShowMenu(available);
 
-            var choice = ui.AskInteger("Choose", 0, _screens.Count + 1);
+            var choice = ui.AskInteger("Choose", 0, available.Count + 1);
 
             if (ui.InputClosed)
             {
@@ -45,15 +46,19 @@ public sealed class MainMenu(
                 return;
             }
 
-            if (choice == _screens.Count + 1)
+            if (choice == available.Count + 1)
             {
                 SwitchUser();
                 continue;
             }
 
-            RunScreen(_screens[choice.Value - 1]);
+            RunScreen(available[choice.Value - 1]);
         }
     }
+
+    /// <summary>The whole of the role filtering, in one line.</summary>
+    private IReadOnlyList<IScreen> AvailableScreens() =>
+        [.. _screens.Where(screen => screen.RequiredRole is null || screen.RequiredRole == session.CurrentRole)];
 
     private void RunScreen(IScreen screen)
     {
@@ -80,53 +85,56 @@ public sealed class MainMenu(
     private void ShowWelcome()
     {
         ui.Header("Event Booking System");
-        ui.Muted("Demo data is loaded. Use 'Simulation' to move the clock and watch the time based rules fire.");
+        ui.Muted("Demo data is loaded. The menu shows only what your role may do - switch user to see the other side.");
+        ui.Muted("Use 'Simulation' to move the clock and watch the time based rules fire.");
     }
 
-    private void ShowMenu()
+    private void ShowMenu(IReadOnlyList<IScreen> available)
     {
-        ui.Section($"Signed in as {session.Customer.FullName} ({session.Customer.Tier})"
-            + $" | organiser: {session.Organizer.OrganizationName}"
-            + $" | {Format.Moment(clock.UtcNow)}");
+        ui.Section($"{session.CurrentUser.FullName} - {DescribeRole()} | {Format.Moment(clock.UtcNow)}");
         ui.Blank();
 
-        for (var index = 0; index < _screens.Count; index++)
+        for (var index = 0; index < available.Count; index++)
         {
-            ui.Write($"  {Format.Number(index + 1),2}. {_screens[index].Title}");
+            ui.Write($"  {Format.Number(index + 1),2}. {available[index].Title}");
         }
 
-        ui.Write($"  {Format.Number(_screens.Count + 1),2}. Switch user");
+        ui.Write($"  {Format.Number(available.Count + 1),2}. Switch user");
         ui.Write($"  {Format.Number(0),2}. Exit");
         ui.Blank();
     }
 
+    private string DescribeRole() => session.CurrentUser switch
+    {
+        Customer customer => $"customer, {customer.Tier} tier",
+        Organizer organizer => $"organiser at {organizer.OrganizationName}",
+        _ => session.CurrentRole.ToString(),
+    };
+
     private void SwitchUser()
     {
         ui.Section("Switch user");
+        ui.Muted("  The menu changes with the role you pick.");
 
-        var customer = ui.Choose("Continue as", [.. users.GetCustomers()], Describe);
-        if (customer is not null)
+        var everyone = users.GetAll().OrderBy(user => user.Role).ThenBy(user => user.FullName).ToList();
+        var chosen = ui.Choose("Sign in as", everyone, Describe);
+
+        if (chosen is not null)
         {
-            session.SwitchCustomer(customer);
-            ui.Success($"Now acting as {customer.FullName}.");
-        }
-
-        var organizer = ui.Choose<Organizer>(
-            "Organiser",
-            [.. users.GetOrganizers()],
-            item => $"{item.FullName} - {item.OrganizationName}");
-
-        if (organizer is not null)
-        {
-            session.SwitchOrganizer(organizer);
-            ui.Success($"Organiser set to {organizer.OrganizationName}.");
+            session.SignIn(chosen);
+            ui.Success($"Now signed in as {chosen.FullName}.");
         }
 
         ui.Pause();
         ui.Clear();
     }
 
-    private static string Describe(Customer customer) =>
-        $"{customer.FullName,-16} {customer.Tier,-8} "
-        + $"{Format.Number(customer.CompletedBookings)} completed booking(s)";
+    private static string Describe(User user) => user switch
+    {
+        Customer customer =>
+            $"{customer.FullName,-16} customer   {customer.Tier,-8} "
+            + $"{Format.Number(customer.CompletedBookings)} completed booking(s)",
+        Organizer organizer => $"{organizer.FullName,-16} organiser  {organizer.OrganizationName}",
+        _ => user.FullName,
+    };
 }

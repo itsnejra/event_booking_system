@@ -37,14 +37,14 @@ internal static class Given
     public static ConcertEvent PublishedConcert(int standardSeats = 100, int vipSeats = 10, double daysAhead = 45)
     {
         var concert = Concert(daysAhead);
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(40m), standardSeats);
+        concert.AddTicketType(OrganizerId, "Parter", TicketTier.Standard, Money.Of(40m), standardSeats);
 
         if (vipSeats > 0)
         {
-            concert.AddTicketType("VIP", TicketTier.Vip, Money.Of(100m), vipSeats);
+            concert.AddTicketType(OrganizerId, "VIP", TicketTier.Vip, Money.Of(100m), vipSeats);
         }
 
-        concert.Publish(Now);
+        concert.Publish(OrganizerId, Now);
         return concert;
     }
 
@@ -61,8 +61,8 @@ internal static class Given
     public static WorkshopEvent PublishedWorkshop(int seats = 10, int minimumAttendees = 4, double daysAhead = 20)
     {
         var workshop = Workshop(minimumAttendees, daysAhead);
-        workshop.AddTicketType("Kotizacija", TicketTier.Standard, Money.Of(200m), seats);
-        workshop.Publish(Now);
+        workshop.AddTicketType(OrganizerId, "Kotizacija", TicketTier.Standard, Money.Of(200m), seats);
+        workshop.Publish(OrganizerId, Now);
         return workshop;
     }
 
@@ -78,9 +78,9 @@ internal static class Given
     public static ConferenceEvent PublishedConference(int seats = 200, double daysAhead = 60)
     {
         var conference = Conference(daysAhead);
-        conference.AddSession(Session(conference, "Uvod", "Track A", hoursIntoEvent: 1));
-        conference.AddTicketType("Standard", TicketTier.Standard, Money.Of(180m), seats);
-        conference.Publish(Now);
+        conference.AddSession(OrganizerId, Session(conference, "Uvod", "Track A", hoursIntoEvent: 1));
+        conference.AddTicketType(OrganizerId, "Standard", TicketTier.Standard, Money.Of(180m), seats);
+        conference.Publish(OrganizerId, Now);
         return conference;
     }
 

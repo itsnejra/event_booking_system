@@ -2,6 +2,7 @@ using EventBooking.Application.Catalog;
 using EventBooking.ConsoleApp.Ui;
 using EventBooking.Domain.Abstractions;
 using EventBooking.Domain.Events;
+using EventBooking.Domain.Users;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.ConsoleApp.Screens;
@@ -20,6 +21,8 @@ public sealed class OrganizerScreen(
         ["Add a ticket type", "Publish", "Reschedule", "Cancel the event"];
 
     public string Title => "Organiser - manage my events";
+
+    public UserRole? RequiredRole => UserRole.Organizer;
 
     public void Show()
     {
@@ -185,7 +188,7 @@ public sealed class OrganizerScreen(
                 break;
 
             case "Publish":
-                if (ui.Try(() => catalog.Publish(@event.Id)))
+                if (ui.Try(() => catalog.Publish(@event.Id, session.Organizer.Id)))
                 {
                     ui.Success($"'{@event.Title}' is on sale.");
                 }
@@ -232,7 +235,7 @@ public sealed class OrganizerScreen(
                 continue;
             }
 
-            var added = ui.Try(() => catalog.AddTicketType(@event.Id, new AddTicketTypeRequest
+            var added = ui.Try(() => catalog.AddTicketType(@event.Id, session.Organizer.Id, new AddTicketTypeRequest
             {
                 Name = name,
                 Tier = tier.Value,
@@ -257,7 +260,9 @@ public sealed class OrganizerScreen(
         }
 
         var start = clock.UtcNow.AddDays(daysAhead.Value);
-        if (ui.Try(() => catalog.Reschedule(@event.Id, new DateRange(start, start.AddHours(hours.Value)))))
+        var newSchedule = new DateRange(start, start.AddHours(hours.Value));
+
+        if (ui.Try(() => catalog.Reschedule(@event.Id, session.Organizer.Id, newSchedule)))
         {
             ui.Success("Rescheduled. Everyone holding tickets has been notified.");
         }
@@ -274,7 +279,7 @@ public sealed class OrganizerScreen(
         }
 
         var refunded = 0;
-        if (ui.Try(() => refunded = catalog.Cancel(@event.Id, reason)))
+        if (ui.Try(() => refunded = catalog.Cancel(@event.Id, session.Organizer.Id, reason)))
         {
             ui.Success($"Cancelled. {Format.Number(refunded)} booking(s) were cancelled and refunded.");
         }

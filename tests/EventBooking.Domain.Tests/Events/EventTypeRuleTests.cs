@@ -68,9 +68,9 @@ public sealed class EventTypeRuleTests
     public void Concert_CannotGoOnSaleWithVipTicketsOnly()
     {
         var concert = Given.Concert();
-        concert.AddTicketType("VIP", TicketTier.Vip, Money.Of(120m), 50);
+        concert.AddTicketType(Given.OrganizerId, "VIP", TicketTier.Vip, Money.Of(120m), 50);
 
-        Assert.Throws<BusinessRuleViolationException>(() => concert.Publish(Given.Now));
+        Assert.Throws<BusinessRuleViolationException>(() => concert.Publish(Given.OrganizerId, Given.Now));
     }
 
     // --- conference ------------------------------------------------------------------------------
@@ -79,27 +79,27 @@ public sealed class EventTypeRuleTests
     public void Conference_CannotGoOnSaleWithoutAProgramme()
     {
         var conference = Given.Conference();
-        conference.AddTicketType("Standard", TicketTier.Standard, Money.Of(180m), 100);
+        conference.AddTicketType(Given.OrganizerId, "Standard", TicketTier.Standard, Money.Of(180m), 100);
 
-        Assert.Throws<BusinessRuleViolationException>(() => conference.Publish(Given.Now));
+        Assert.Throws<BusinessRuleViolationException>(() => conference.Publish(Given.OrganizerId, Given.Now));
     }
 
     [Fact]
     public void Conference_RefusesTwoTalksOnOneTrackAtTheSameTime()
     {
         var conference = Given.Conference();
-        conference.AddSession(Given.Session(conference, "Prvi", "Arhitektura", hoursIntoEvent: 2));
+        conference.AddSession(Given.OrganizerId, Given.Session(conference, "Prvi", "Arhitektura", hoursIntoEvent: 2));
 
         Assert.Throws<BusinessRuleViolationException>(
-            () => conference.AddSession(Given.Session(conference, "Drugi", "Arhitektura", hoursIntoEvent: 2.5)));
+            () => conference.AddSession(Given.OrganizerId, Given.Session(conference, "Drugi", "Arhitektura", hoursIntoEvent: 2.5)));
     }
 
     [Fact]
     public void Conference_AllowsParallelTalksOnDifferentTracks()
     {
         var conference = Given.Conference();
-        conference.AddSession(Given.Session(conference, "Prvi", "Arhitektura", hoursIntoEvent: 2));
-        conference.AddSession(Given.Session(conference, "Drugi", "Baze", hoursIntoEvent: 2));
+        conference.AddSession(Given.OrganizerId, Given.Session(conference, "Prvi", "Arhitektura", hoursIntoEvent: 2));
+        conference.AddSession(Given.OrganizerId, Given.Session(conference, "Drugi", "Baze", hoursIntoEvent: 2));
 
         Assert.Equal(2, conference.Sessions.Count);
         Assert.Equal(2, conference.Tracks.Count);
@@ -111,7 +111,7 @@ public sealed class EventTypeRuleTests
         var conference = Given.Conference();
 
         Assert.Throws<BusinessRuleViolationException>(
-            () => conference.AddSession(Given.Session(conference, "Prerano", "Arhitektura", hoursIntoEvent: -5)));
+            () => conference.AddSession(Given.OrganizerId, Given.Session(conference, "Prerano", "Arhitektura", hoursIntoEvent: -5)));
     }
 
     [Fact]
@@ -139,9 +139,9 @@ public sealed class EventTypeRuleTests
     public void Workshop_CannotGoOnSaleWhenItsMinimumExceedsItsSeats()
     {
         var workshop = Given.Workshop(minimumAttendees: 20);
-        workshop.AddTicketType("Kotizacija", TicketTier.Standard, Money.Of(200m), 10);
+        workshop.AddTicketType(Given.OrganizerId, "Kotizacija", TicketTier.Standard, Money.Of(200m), 10);
 
-        Assert.Throws<BusinessRuleViolationException>(() => workshop.Publish(Given.Now));
+        Assert.Throws<BusinessRuleViolationException>(() => workshop.Publish(Given.OrganizerId, Given.Now));
     }
 
     [Fact]

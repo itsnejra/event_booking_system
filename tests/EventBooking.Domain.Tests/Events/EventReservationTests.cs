@@ -34,7 +34,7 @@ public sealed class EventReservationTests
     public void Reserve_OnADraftEvent_Throws()
     {
         var concert = Given.Concert();
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(40m), 10);
+        concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(40m), 10);
 
         Assert.Throws<InvalidStateTransitionException>(
             () => concert.Reserve(Given.Order(concert, "Parter", 1), Given.Now));
@@ -44,7 +44,7 @@ public sealed class EventReservationTests
     public void Reserve_OnACancelledEvent_Throws()
     {
         var concert = Given.PublishedConcert();
-        concert.Cancel("Otkazano", Given.Now);
+        concert.Cancel(Given.OrganizerId, "Otkazano", Given.Now);
 
         Assert.Throws<InvalidStateTransitionException>(
             () => concert.Reserve(Given.Order(concert, "Parter", 1), Given.Now));
@@ -115,9 +115,9 @@ public sealed class EventReservationTests
     {
         var concert = Given.Concert(daysAhead: 40);
         var window = new DateRange(Given.Now.AddDays(1), Given.Now.AddDays(5));
-        concert.AddTicketType("Prvo kolo", TicketTier.Standard, Money.Of(30m), 100, window);
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(40m), 100);
-        concert.Publish(Given.Now);
+        concert.AddTicketType(Given.OrganizerId, "Prvo kolo", TicketTier.Standard, Money.Of(30m), 100, window);
+        concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(40m), 100);
+        concert.Publish(Given.OrganizerId, Given.Now);
 
         Assert.Throws<BusinessRuleViolationException>(
             () => concert.Reserve(Given.Order(concert, "Prvo kolo", 1), Given.Now.AddDays(10)));
@@ -128,9 +128,9 @@ public sealed class EventReservationTests
     {
         var concert = Given.Concert(daysAhead: 40);
         var window = new DateRange(Given.Now.AddDays(1), Given.Now.AddDays(5));
-        concert.AddTicketType("Prvo kolo", TicketTier.Standard, Money.Of(30m), 100, window);
-        concert.AddTicketType("Parter", TicketTier.Standard, Money.Of(40m), 100);
-        concert.Publish(Given.Now);
+        concert.AddTicketType(Given.OrganizerId, "Prvo kolo", TicketTier.Standard, Money.Of(30m), 100, window);
+        concert.AddTicketType(Given.OrganizerId, "Parter", TicketTier.Standard, Money.Of(40m), 100);
+        concert.Publish(Given.OrganizerId, Given.Now);
 
         var reservation = concert.Reserve(Given.Order(concert, "Prvo kolo", 1), Given.Now.AddDays(2));
 

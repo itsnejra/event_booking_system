@@ -100,12 +100,15 @@ public abstract class Event : AggregateRoot<EventId>
     /// really do add a second batch), but never once it is cancelled or over.
     /// </summary>
     public TicketType AddTicketType(
+        UserId actingOrganizer,
         string name,
         TicketTier tier,
         Money price,
         int capacity,
         DateRange? salesWindow = null)
     {
+        EnsureManagedBy(actingOrganizer);
+
         if (Status is EventStatus.Cancelled or EventStatus.Completed)
         {
             throw new InvalidStateTransitionException(Describe(), Status, "add ticket types to");
@@ -145,8 +148,9 @@ public abstract class Event : AggregateRoot<EventId>
     public TicketType? FindTicketType(string name) =>
         _ticketTypes.FirstOrDefault(type => string.Equals(type.Name, name, StringComparison.OrdinalIgnoreCase));
 
-    public void UpdateDetails(string title, string description)
+    public void UpdateDetails(UserId actingOrganizer, string title, string description)
     {
+        EnsureManagedBy(actingOrganizer);
         EnsureNotFinished("edit");
         Title = Guard.MaxLength(Guard.NotEmpty(title), 150);
         Description = Guard.MaxLength(Guard.NotEmpty(description), 2000);
@@ -154,8 +158,10 @@ public abstract class Event : AggregateRoot<EventId>
 
     // --- lifecycle ---------------------------------------------------------------------------------
 
-    public void Publish(DateTimeOffset now)
+    public void Publish(UserId actingOrganizer, DateTimeOffset now)
     {
+        EnsureManagedBy(actingOrganizer);
+
         if (Status != EventStatus.Draft)
         {
             throw new InvalidStateTransitionException(Describe(), Status, "publish");
@@ -177,8 +183,9 @@ public abstract class Event : AggregateRoot<EventId>
         RaiseDomainEvent(new EventPublishedDomainEvent(Id, Title, now));
     }
 
-    public void Reschedule(DateRange newSchedule, DateTimeOffset now)
+    public void Reschedule(UserId actingOrganizer, DateRange newSchedule, DateTimeOffset now)
     {
+        EnsureManagedBy(actingOrganizer);
         Guard.NotNull(newSchedule);
         EnsureNotFinished("reschedule");
 
@@ -196,7 +203,18 @@ public abstract class Event : AggregateRoot<EventId>
         }
     }
 
-    public void Cancel(string reason, DateTimeOffset now)
+    public void Cancel(UserId actingOrganizer, string reason, DateTimeOffset now)
+    {
+        EnsureManagedBy(actingOrganizer);
+        CancelCore(reason, now);
+    }
+
+    /// <summary>
+    /// Cancellation without an authorisation check, for when the system itself calls the event off
+    /// rather than a person - see <see cref="WorkshopEvent"/>. Protected so that only the aggregate
+    /// can reach it; a service cannot use this to slip past <see cref="EnsureManagedBy"/>.
+    /// </summary>
+    protected void CancelCore(string reason, DateTimeOffset now)
     {
         EnsureNotFinished("cancel");
 
@@ -425,6 +443,18 @@ public abstract class Event : AggregateRoot<EventId>
         return [.. items
             .GroupBy(item => item.TicketTypeId)
             .Select(group => new TicketOrderItem(group.Key, group.Sum(item => item.Quantity)))];
+    }
+
+    /// <summary>
+    /// An event belongs to the organiser who created it. Every operation that changes it goes
+    /// through here, so the rule cannot be left out of a new caller by accident.
+    /// </summary>
+    protected void EnsureManagedBy(UserId actingOrganizer)
+    {
+        if (actingOrganizer != OrganizerId)
+        {
+            throw new NotTheOrganizerException(Describe());
+        }
     }
 
     private void EnsureNotFinished(string action)

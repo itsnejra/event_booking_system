@@ -129,7 +129,7 @@ public sealed class BookingServiceTests
         var customer = host.AddCustomer();
         var booking = host.Bookings.PlaceHold(customer.Id, concert.Id, TestHost.Order(concert, "Parter", 1));
 
-        host.Catalog.Cancel(concert.Id, "Otkazano");
+        host.Catalog.Cancel(concert.Id, concert.OrganizerId, "Otkazano");
 
         // The service checks the event before the booking, so the customer is told why rather than
         // just that their booking is in the wrong state.

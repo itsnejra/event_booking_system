@@ -1,3 +1,5 @@
+using EventBooking.Domain.Users;
+
 namespace EventBooking.ConsoleApp.Screens;
 
 /// <summary>
@@ -7,6 +9,12 @@ namespace EventBooking.ConsoleApp.Screens;
 public interface IScreen
 {
     string Title { get; }
+
+    /// <summary>
+    /// The role allowed to open this screen, or <see langword="null"/> when anyone may.
+    /// The menu hides whatever the signed-in user cannot use, so a screen never has to defend itself.
+    /// </summary>
+    UserRole? RequiredRole { get; }
 
     void Show();
 }
