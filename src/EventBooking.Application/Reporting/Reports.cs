@@ -4,8 +4,7 @@ using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Application.Reporting;
 
-// Read models. They are records with no behaviour on purpose: a report is a snapshot of an answer,
-// and giving it methods would invite business logic to move out of the domain and into the reports.
+// Read models.
 
 /// <summary>How one event is doing: how full it is and what it has actually earned.</summary>
 public sealed record EventPerformanceReport(

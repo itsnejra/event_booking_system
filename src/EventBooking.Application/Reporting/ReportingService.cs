@@ -10,11 +10,6 @@ namespace EventBooking.Application.Reporting;
 /// Answers the questions an organiser actually asks. Reporting is read-only and derives everything
 /// from the aggregates, so there is no separate set of totals that can quietly disagree with them.
 /// </summary>
-/// <remarks>
-/// Revenue counts every booking that was ever paid for, and subtracts what was refunded. A booking
-/// that was confirmed and later cancelled therefore shows up in both columns, which is the honest
-/// picture: the money did come in, and some of it did go back out.
-/// </remarks>
 public sealed class ReportingService(
     IEventRepository events,
     IBookingRepository bookings,

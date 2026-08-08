@@ -8,13 +8,6 @@ namespace EventBooking.Domain.Pricing;
 /// <summary>
 /// Turns a reservation into a price by running every registered rule over every line.
 /// </summary>
-/// <remarks>
-/// Two decisions worth calling out. First, discounts stack, but only up to a ceiling - without it a
-/// loyal customer buying a large group of early bird tickets could walk away with the tickets for
-/// almost nothing. Second, when a rule would push the total past that ceiling it is trimmed to
-/// whatever headroom is left rather than dropped, so the outcome does not depend on how the ceiling
-/// happens to be reached.
-/// </remarks>
 public sealed class PricingEngine
 {
     public static readonly Percentage DefaultMaximumDiscount = Percentage.Of(35m);

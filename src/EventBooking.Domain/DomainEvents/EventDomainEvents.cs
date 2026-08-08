@@ -4,8 +4,7 @@ using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Domain.DomainEvents;
 
-// Facts published by the Event aggregate. They are grouped in one file because they are one
-// vocabulary; each is a single line and splitting them would hide that.
+// Facts published by the Event aggregate.
 
 public sealed record EventPublishedDomainEvent(EventId EventId, string Title, DateTimeOffset OccurredAt) : IDomainEvent;
 

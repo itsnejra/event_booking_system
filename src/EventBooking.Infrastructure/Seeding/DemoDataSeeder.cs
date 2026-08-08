@@ -16,13 +16,6 @@ public sealed record DemoData(
 /// <summary>
 /// Fills an empty system with something worth looking at.
 /// </summary>
-/// <remarks>
-/// The seeder goes through the same services a user would, never straight into the repositories, so
-/// the starting state is one the application could actually have reached. The data is chosen to make
-/// each interesting rule visible: an event far enough out for early bird pricing, a workshop that
-/// will not reach its minimum, a workshop that is already sold out, an unpaid hold, and a booking
-/// that was cancelled and refunded.
-/// </remarks>
 public sealed class DemoDataSeeder(
     IVenueRepository venues,
     IUserRepository users,

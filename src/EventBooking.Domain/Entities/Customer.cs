@@ -29,8 +29,7 @@ public sealed class Customer : User
     {
         CompletedBookings++;
 
-        // Promotion only. A tier granted by hand or carried over from an older system must survive
-        // the customer's next booking - nobody has ever been demoted for buying another ticket.
+        // Promotion only.
         var earned = TierFor(CompletedBookings);
         if (earned > Tier)
         {

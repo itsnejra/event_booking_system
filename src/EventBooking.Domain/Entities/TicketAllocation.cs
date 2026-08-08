@@ -67,8 +67,7 @@ public sealed class TicketAllocation
         Capacity = newCapacity;
     }
 
-    // Reaching this point means a caller skipped the checks on TicketType/Event, i.e. a bug in our
-    // own code rather than an invalid request from a user - hence InvalidOperationException.
+    // Reaching this point means a caller skipped the checks on TicketType/Event, i.e.
     private static void EnsureEnough(int requested, int bucket, string operation)
     {
         if (requested > bucket)

@@ -14,8 +14,7 @@ public abstract class Specification<T> : ISpecification<T>
     {
         ArgumentNullException.ThrowIfNull(other);
 
-        // Folding a list of optional filters starts from All; without this the result would be a
-        // pointlessly deep tree of "true AND (true AND ...)".
+        // Folding optional filters starts from All, otherwise the tree fills with redundant true AND ...
         if (this is AlwaysTrueSpecification<T>)
         {
             return other;

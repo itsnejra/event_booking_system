@@ -24,16 +24,11 @@ public static class ApplicationServiceRegistration
     /// Registers application services, the pricing rule set and the domain event handlers.
     /// The caller supplies persistence, the clock and a notification channel.
     /// </summary>
-    /// <remarks>
-    /// Singleton lifetimes match the in-memory store used by the console. A web host would make the
-    /// services and repositories scoped per request; only these lines would change.
-    /// </remarks>
     public static IServiceCollection AddEventBookingApplication(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        // Pricing rules are registered individually and collected by the engine. Adding a promotion
-        // is one more line here plus one new class - no existing code is touched.
+        // Pricing rules are registered individually and collected by the engine.
         services.AddSingleton<IPricingRule>(EarlyBirdDiscountRule.Default);
         services.AddSingleton<IPricingRule>(GroupDiscountRule.Default);
         services.AddSingleton<IPricingRule>(LoyaltyDiscountRule.Default);

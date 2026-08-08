@@ -15,16 +15,11 @@ public static class InfrastructureServiceRegistration
     /// <summary>
     /// Registers persistence, messaging and notification delivery.
     /// </summary>
-    /// <remarks>
-    /// Deliberately does <em>not</em> register <see cref="IClock"/>: which clock to run on is a
-    /// decision for the host, and the console app wants one it can move (see <c>AdjustableClock</c>).
-    /// </remarks>
     public static IServiceCollection AddEventBookingInfrastructure(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        // Each store is registered twice on purpose: once as itself, so the concrete type is
-        // resolvable, and once per interface, so the layers above only ever see the abstraction.
+        // Registered twice: as itself so the concrete type resolves, and per interface for the layers above.
         services.AddSingleton<InMemoryEventRepository>();
         services.AddSingleton<InMemoryBookingRepository>();
         services.AddSingleton<InMemoryUserRepository>();

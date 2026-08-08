@@ -8,12 +8,6 @@ namespace EventBooking.Infrastructure.Messaging;
 /// <summary>
 /// Delivers collected domain events to every handler registered for their concrete type.
 /// </summary>
-/// <remarks>
-/// The awkward part of this pattern is that the events arrive as <see cref="IDomainEvent"/> while the
-/// handlers are generic. Rather than reflecting over <c>Handle</c> on every dispatch, a tiny typed
-/// invoker is built once per event type and cached - so the reflection cost is paid at most once per
-/// kind of event, and the actual call is an ordinary virtual call.
-/// </remarks>
 public sealed class DomainEventDispatcher(IServiceProvider serviceProvider) : IDomainEventDispatcher
 {
     private static readonly ConcurrentDictionary<Type, HandlerInvoker> Invokers = new();
@@ -24,8 +18,7 @@ public sealed class DomainEventDispatcher(IServiceProvider serviceProvider) : ID
 
         var pending = new List<IDomainEvent>();
 
-        // Drain first, handle second. A handler that touches one of these aggregates would otherwise
-        // add to the very list being iterated.
+        // Drain first, handle second.
         foreach (var aggregate in aggregates)
         {
             if (aggregate.DomainEvents.Count == 0)

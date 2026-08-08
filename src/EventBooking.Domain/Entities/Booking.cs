@@ -12,12 +12,6 @@ namespace EventBooking.Domain.Entities;
 /// <summary>
 /// A customer's claim on a set of tickets, and the record of what they agreed to pay for them.
 /// </summary>
-/// <remarks>
-/// A booking starts as a time-limited hold. That is what makes the flow honest: seats leave the pool
-/// the moment somebody starts checking out, and come back on their own if the checkout is abandoned.
-/// The booking never touches the event's inventory itself - the two aggregates are kept separate,
-/// and <c>BookingService</c> is the one place that moves them together.
-/// </remarks>
 public sealed class Booking : AggregateRoot<BookingId>
 {
     public static readonly TimeSpan DefaultHoldDuration = TimeSpan.FromMinutes(15);

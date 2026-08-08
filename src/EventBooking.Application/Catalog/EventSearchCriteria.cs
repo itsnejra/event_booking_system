@@ -9,10 +9,6 @@ namespace EventBooking.Application.Catalog;
 /// What the user typed into the search screen. Every field is optional; the criteria object knows how
 /// to fold the ones that were filled in into a single specification.
 /// </summary>
-/// <remarks>
-/// This is the payoff of the specification pattern: the search screen grows a field, this method
-/// grows a line, and nothing else in the system changes.
-/// </remarks>
 public sealed record EventSearchCriteria
 {
     public string? Text { get; init; }

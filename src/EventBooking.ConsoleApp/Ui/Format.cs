@@ -7,11 +7,6 @@ namespace EventBooking.ConsoleApp.Ui;
 /// <summary>
 /// Display formatting, and the single place that decides which culture the console renders in.
 /// </summary>
-/// <remarks>
-/// The domain formats itself for logs and messages; how a date or a number looks on screen is a
-/// presentation decision. Keeping it here also means no screen has to remember to pass a format
-/// provider - if it goes through <c>Format</c>, it is already right.
-/// </remarks>
 public static class Format
 {
     private static readonly CultureInfo Culture = CultureInfo.InvariantCulture;

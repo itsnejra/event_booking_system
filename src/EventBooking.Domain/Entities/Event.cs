@@ -13,13 +13,6 @@ namespace EventBooking.Domain.Entities;
 /// through this class, which is what makes overselling impossible by construction rather than by
 /// discipline.
 /// </summary>
-/// <remarks>
-/// The base class owns everything that is true of every event. What differs between a concert, a
-/// conference and a workshop is expressed through three extension points - <see cref="Category"/>,
-/// <see cref="MaxTicketsPerBooking"/> and <see cref="RefundPolicy"/> - plus two optional hooks,
-/// <see cref="OnValidateReservation"/> and <see cref="OnValidatePublish"/>. Adding a fourth kind of
-/// event means adding one class; it does not mean touching this one.
-/// </remarks>
 public abstract class Event : AggregateRoot<EventId>
 {
     private readonly List<TicketType> _ticketTypes = [];

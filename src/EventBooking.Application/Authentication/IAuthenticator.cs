@@ -12,10 +12,5 @@ public interface IAuthenticator
     /// <summary>
     /// The user behind these credentials, or <see langword="null"/> if there is none.
     /// </summary>
-    /// <remarks>
-    /// A rejected sign-in gives back nothing rather than a reason. "No such address" and "wrong
-    /// credentials" are the same answer on purpose: telling them apart tells a stranger which
-    /// addresses are registered.
-    /// </remarks>
     User? Authenticate(string emailAddress);
 }

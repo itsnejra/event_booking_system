@@ -68,8 +68,7 @@ public sealed class MainMenu(
         ui.Clear();
         ui.Header(screen.Title);
 
-        // Screens deal with expected refusals themselves. This is the net for everything else, so
-        // that one unexpected failure does not take the whole session down with it.
+        // Screens deal with expected refusals themselves.
         try
         {
             screen.Show();

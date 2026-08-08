@@ -1,8 +1,7 @@
 
 namespace EventBooking.Domain.Specifications;
 
-// The combinators behind Specification<T>.And / .Or / .Not. They are internal because callers should
-// build them through those methods rather than newing them up directly.
+// The combinators behind Specification<T>.And / .Or / .Not.
 
 internal sealed class AndSpecification<T>(Specification<T> left, Specification<T> right) : Specification<T>
 {

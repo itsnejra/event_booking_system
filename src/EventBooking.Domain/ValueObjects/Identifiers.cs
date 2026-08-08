@@ -1,10 +1,7 @@
 
 namespace EventBooking.Domain.ValueObjects;
 
-// Identifiers get their own types rather than being raw Guids. It costs a few lines here and buys
-// a compile-time error every time somebody passes a customer where an event was expected.
-// They are grouped in one file on purpose: they are one idea, and splitting them across five files
-// would only make the concept harder to see.
+// Identifiers get their own types rather than being raw Guids.
 
 public readonly record struct EventId(Guid Value)
 {

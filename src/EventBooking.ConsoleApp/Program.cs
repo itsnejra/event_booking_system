@@ -16,8 +16,7 @@ var signIn = provider.GetRequiredService<SignInScreen>();
 var session = provider.GetRequiredService<Session>();
 var menu = provider.GetRequiredService<MainMenu>();
 
-// Sign in, use the application, sign out, repeat. Nothing runs without somebody signed in, and the
-// menu decides what that somebody may open.
+// Sign in, use the application, sign out, repeat.
 while (signIn.Show() is { } user)
 {
     session.SignIn(user);
@@ -35,8 +34,7 @@ static ServiceProvider BuildServiceProvider()
     services.AddEventBookingApplication();
     services.AddEventBookingInfrastructure();
 
-    // The demo runs on a clock it can move forward. Production would register SystemClock here, and
-    // nothing else in the solution would notice the difference - that is the whole point of IClock.
+    // The demo runs on a clock it can move forward.
     services.AddSingleton<AdjustableClock>();
     services.AddSingleton<IClock>(serviceProvider => serviceProvider.GetRequiredService<AdjustableClock>());
 

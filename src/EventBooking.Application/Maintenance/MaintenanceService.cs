@@ -15,10 +15,6 @@ public sealed record MaintenanceSummary(int ExpiredHolds, int CompletedEvents, i
 /// The scheduled job of the system, gathered in one place: expire abandoned holds, close events that
 /// are over, and let each event run whatever periodic check its own type defines.
 /// </summary>
-/// <remarks>
-/// In production a timer would call <see cref="Run"/>. Here it is a menu item, which makes the
-/// time-dependent behaviour something you can watch happen rather than something you take on faith.
-/// </remarks>
 public sealed class MaintenanceService(
     IEventRepository events,
     BookingService bookings,

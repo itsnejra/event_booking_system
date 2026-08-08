@@ -8,11 +8,6 @@ namespace EventBooking.Infrastructure.Persistence;
 /// given, a change made through an aggregate's own methods is visible immediately - which is exactly
 /// how an ORM with a tracked context behaves, and why the domain needs no explicit save call.
 /// </summary>
-/// <remarks>
-/// Access is synchronised so that the collection cannot be corrupted by concurrent use. That does
-/// not make the <em>business</em> operations atomic - two customers racing for the last seat would
-/// still need a transaction or optimistic concurrency. See the README.
-/// </remarks>
 public abstract class InMemoryRepository<TEntity, TId> : IRepository<TEntity, TId>
     where TEntity : class
     where TId : struct

@@ -137,8 +137,7 @@ public sealed class EventCatalogService(
         var venue = venues.FindById(request.VenueId)
             ?? throw EntityNotFoundException.For<Venue>(request.VenueId);
 
-        // Only an organiser may create events - the check belongs here rather than in the aggregate,
-        // because it is about who is calling, not about whether the event itself is valid.
+        // Only an organiser may create events; this is about who is calling, not about the event itself.
         var organizer = users.FindById(request.OrganizerId) as Organizer
             ?? throw EntityNotFoundException.For<Organizer>(request.OrganizerId);
 

@@ -11,12 +11,6 @@ namespace EventBooking.Application.Bookings;
 /// <summary>
 /// Runs the booking flow end to end: hold seats, price them, take payment, give them back.
 /// </summary>
-/// <remarks>
-/// A booking touches two aggregates - the event owns the seats, the booking owns the money - and
-/// this service is the only place where the two move together. That is a deliberate trade-off: with
-/// a real database each method here would be one transaction, and keeping the coordination in one
-/// class is what makes that change a local one.
-/// </remarks>
 public sealed class BookingService(
     IEventRepository events,
     IBookingRepository bookings,
@@ -48,8 +42,7 @@ public sealed class BookingService(
         }
         catch
         {
-            // Nothing downstream of Reserve may leave seats stranded. In a database-backed version
-            // the surrounding transaction would do this for us.
+            // Nothing downstream of Reserve may leave seats stranded.
             @event.ReleaseReservation(reservation, wasPaidFor: false, now);
             dispatcher.Dispatch(@event);
             throw;
@@ -108,10 +101,7 @@ public sealed class BookingService(
 
         foreach (var booking in affected)
         {
-            // The seats go back for the same reason they do when a customer cancels: nobody holds
-            // them any more. Without this the event keeps reporting them as sold long after every
-            // booking was refunded. The waiting list is not disturbed - its handler only speaks for
-            // events that are still published.
+            // The seats go back for the same reason they do when a customer cancels: nobody holds them any more.
             var wasPaidFor = booking.IsPaidFor;
             booking.CancelBecauseEventCancelled(now, reason);
             @event.ReleaseReservation(booking.AsReservation(), wasPaidFor, now);

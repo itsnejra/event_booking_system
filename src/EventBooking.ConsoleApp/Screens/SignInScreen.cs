@@ -9,10 +9,6 @@ namespace EventBooking.ConsoleApp.Screens;
 /// The gate in front of the menu. It asks who you are, hands the answer to
 /// <see cref="IAuthenticator"/>, and knows nothing about what any of them are allowed to do.
 /// </summary>
-/// <remarks>
-/// Not an <see cref="IScreen"/>: those are the things a signed-in user picks from the menu, and this
-/// runs before there is a menu at all.
-/// </remarks>
 public sealed class SignInScreen(
     IAuthenticator authenticator,
     IUserRepository users,

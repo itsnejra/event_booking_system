@@ -4,9 +4,7 @@ using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Domain.Specifications;
 
-// The family of filters the catalogue understands. They live in one file because they are one
-// vocabulary and each is a couple of lines; anything with real logic in it would get its own file.
-// Search screens combine these instead of writing their own predicates - see EventSearchCriteria.
+// The family of filters the catalogue understands.
 
 public sealed class EventInCategorySpecification(EventCategory category) : Specification<Event>
 {
