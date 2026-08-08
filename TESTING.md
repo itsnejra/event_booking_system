@@ -1,8 +1,8 @@
 # Kako ovo testirati ručno
 
-Ovo su scenariji kojima sam sama prošla kroz aplikaciju dok sam je testirala na svom računaru.
-Zapisala sam ih jer se kroz konzolnu aplikaciju teško prati šta se sve desilo, pa je lakše kad uz
-svaki korak stoji i šta bi trebalo da se ispiše. Ako se ispiše nešto drugo, to je nalaz.
+Ovim scenarijima je aplikacija prolazena pri testiranju, na razvojnoj mašini. Zapisani su zato što
+se kroz konzolnu aplikaciju teško prati šta se sve desilo, pa je lakše kad uz svaki korak stoji i
+šta bi trebalo da se ispiše. Ako se ispiše nešto drugo, to je nalaz.
 
 ```bash
 dotnet run --project src/EventBooking.ConsoleApp
@@ -12,7 +12,7 @@ Podaci žive u memoriji. Zatvaranje aplikacije vraća sve na početno stanje, pa
 griješiti i počinjati ispočetka.
 
 Scenariji se oslanjaju jedan na drugi i najbolje ih je proći redom. Gdje neki korak mijenja brojke u
-kasnijem koraku, to sam posebno naglasila.
+kasnijem koraku, to je posebno naglašeno.
 
 ---
 
@@ -42,7 +42,7 @@ koda. Ako izgleda da je zakazani posao nešto propustio, prvo treba provjeriti z
 Standard) i dva organizatora (Amila Hodzic iz Skyline Eventsa, Damir Kovacevic iz BH Konferencija).
 
 Aplikacija traži prijavu prije nego što išta pokaže. Adrese su ispisane na ekranu za prijavu, jer je
-ovo demo; lozinke nema, vidi obrazloženje u [README](README.md#šta-sam-svjesno-izostavila).
+ovo demo; lozinke nema, vidi obrazloženje u [README](README.md#šta-je-svjesno-izostavljeno).
 
 Za scenarije niže prijavi se kao **`lejla.begic@example.ba`** (kupac, Gold). Meni koji dobiješ
 pokazuje samo ono što njena rola smije.
