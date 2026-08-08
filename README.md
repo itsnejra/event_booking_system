@@ -211,6 +211,11 @@ U konzoli se ista uloga koristi za filtriranje menija: `IScreen` deklariše `Req
 vidi pretragu i svoje rezervacije, a organizator upravljanje događajima i izvještaje. Filtriranje je
 jedan `Where` u `MainMenu` — ekran se nikad ne mora braniti sam.
 
+Do menija se dolazi tek nakon prijave. `IAuthenticator` odgovara **samo** na pitanje ko je pozvao;
+šta taj neko smije ostaje na agregatu i na filtriranju iznad. Zato odbijena prijava ne kaže *zašto*
+je odbijena — nepoznata adresa i neispravan format daju isti odgovor, jer razlika između ta dva
+strancu odaje koje su adrese registrovane.
+
 ### Vrijednosni objekti
 
 `Money`, `Percentage`, `DateRange`, `EmailAddress`, `BookingReference` i jaki identifikatori
@@ -270,8 +275,12 @@ rezervacije. Moglo je i preko rukovaoca domenskog događaja, ali to skriva tok i
 **Notifikacije završavaju u `NotificationInbox`.** Ispis usred menija bi razbio ekran; ovako se u
 meniju „Notification inbox“ vidi tačno ono što bi mail server dobio.
 
-**Nema prave prijave.** Uloge i vlasništvo se provjeravaju, ali identitet se bira iz menija umjesto
-lozinkom. Autentifikacija je odvojen problem od autorizacije; ovdje je riješen samo drugi.
+**Prijava postoji, ali se ništa ne dokazuje.** `IAuthenticator` je granica na pravom mjestu — bez
+prijave se ne dolazi do menija — ali `DirectoryAuthenticator` iza nje samo traži poznatu adresu.
+Lozinka bi se ovdje provjeravala protiv heša koji nestaje sa procesom, dakle izgled sigurnosti bez
+sigurnosti. Prava implementacija — lozinka, token, SSO — mijenja tu jednu klasu i jedan red
+registracije, jer sve iznad zavisi od interfejsa. Autentifikacija i autorizacija su namjerno
+razdvojene: ko si pita `IAuthenticator`, a šta smiješ odlučuju agregat i meni.
 
 **Tri analizatorska pravila su isključena**, svako sa obrazloženjem u `.editorconfig` — najvažnije
 CA1716, koje traži da se klasa `Event` preimenuje jer je `Event` ključna riječ u VB-u. Ovo je
@@ -320,6 +329,7 @@ src/
     Abstractions/                 IClock, repozitoriji, Specification<T>
     Exceptions/                   DomainException i potomci
   EventBooking.Application/
+    Authentication/               IAuthenticator + implementacija
     Catalog/                      EventCatalogService, kriteriji pretrage
     Bookings/                     BookingService
     Maintenance/                  MaintenanceService

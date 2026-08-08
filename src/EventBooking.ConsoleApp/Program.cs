@@ -15,9 +15,23 @@ Console.OutputEncoding = Encoding.UTF8;
 
 using var provider = BuildServiceProvider();
 
-var demoData = provider.GetRequiredService<DemoDataSeeder>().Seed();
-provider.GetRequiredService<Session>().SignIn(demoData.Customers[0]);
-provider.GetRequiredService<MainMenu>().Run();
+provider.GetRequiredService<DemoDataSeeder>().Seed();
+
+var signIn = provider.GetRequiredService<SignInScreen>();
+var session = provider.GetRequiredService<Session>();
+var menu = provider.GetRequiredService<MainMenu>();
+
+// Sign in, use the application, sign out, repeat. Nothing runs without somebody signed in, and the
+// menu decides what that somebody may open.
+while (signIn.Show() is { } user)
+{
+    session.SignIn(user);
+
+    if (!menu.Run())
+    {
+        break;
+    }
+}
 
 static ServiceProvider BuildServiceProvider()
 {
@@ -33,6 +47,7 @@ static ServiceProvider BuildServiceProvider()
 
     services.AddSingleton<IUserInterface, ConsoleUi>();
     services.AddSingleton<Session>();
+    services.AddSingleton<SignInScreen>();
     services.AddSingleton<MainMenu>();
 
     // Registration order is menu order.

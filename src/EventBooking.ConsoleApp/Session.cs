@@ -27,5 +27,9 @@ public sealed class Session
         CurrentUser as Organizer
         ?? throw new InvalidOperationException($"{CurrentUser.FullName} is signed in as a customer, not an organiser.");
 
-    public void SignIn(User user) => _user = user;
+    public bool IsSignedIn => _user is not null;
+
+    public void SignIn(User user) => _user = user ?? throw new ArgumentNullException(nameof(user));
+
+    public void SignOut() => _user = null;
 }

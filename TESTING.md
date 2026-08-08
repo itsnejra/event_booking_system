@@ -41,7 +41,15 @@ koda. Ako izgleda da je zakazani posao nešto propustio, prvo treba provjeriti z
 Šest korisnika: četiri kupca (Lejla Begic — Gold, Emir Saric — Silver, Nina Maric i Tarik Delic —
 Standard) i dva organizatora (Amila Hodzic iz Skyline Eventsa, Damir Kovacevic iz BH Konferencija).
 
-Aplikacija startuje prijavljena kao **Lejla Begic**. Meni pokazuje samo ono što njena rola smije.
+Aplikacija traži prijavu prije nego što išta pokaže. Adrese su ispisane na ekranu za prijavu, jer je
+ovo demo; lozinke nema — vidi obrazloženje u [README](README.md#svjesni-kompromisi).
+
+Za scenarije niže prijavi se kao **`lejla.begic@example.ba`** (kupac, Gold). Meni koji dobiješ
+pokazuje samo ono što njena rola smije.
+
+Prije toga vrijedi provjeriti i odbijanje: upiši `nepostoji@example.ba`, pa `bez-etice`. Oba puta
+mora doći **isti** odgovor — `No account for that address.` Različiti odgovori bi strancu odali koje
+adrese postoje.
 
 ---
 
@@ -112,10 +120,11 @@ rukovalac koji sluša domenski događaj.
 
 ## 6. Role i izvještaji
 
-Meni `5` (Switch user), pa izbor **Amila Hodzic** — jedina sa oznakom `organiser` uz Damira.
+Meni `5` (Sign out), pa se prijavi kao **`amila.hodzic@skyline-events.ba`** — organizatorica u
+Skyline Eventsu.
 
 Meni se mijenja: nestaju "Browse and book events" i "My bookings", pojavljuju se "Organiser" i
-"Reports". Isti program, druga prava.
+"Reports". Isti program, druga prava — a ekrani se ne brane sami, nego ih meni ni ne ponudi.
 
 `2` otvara izvještaje. Brojke se moraju zbrajati: neto po događaju je bruto minus povrati, a
 ukupan neto prihod je zbir neto iznosa svih događaja.

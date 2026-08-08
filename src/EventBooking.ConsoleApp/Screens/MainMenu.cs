@@ -11,13 +11,16 @@ namespace EventBooking.ConsoleApp.Screens;
 public sealed class MainMenu(
     IEnumerable<IScreen> screens,
     Session session,
-    IUserRepository users,
     IClock clock,
     IUserInterface ui)
 {
     private readonly IReadOnlyList<IScreen> _screens = [.. screens];
 
-    public void Run()
+    /// <summary>
+    /// Runs until the signed-in user leaves. <see langword="true"/> means they signed out and want
+    /// the sign-in screen back; <see langword="false"/> means they are done with the application.
+    /// </summary>
+    public bool Run()
     {
         ui.Clear();
         ShowWelcome();
@@ -31,7 +34,7 @@ public sealed class MainMenu(
 
             if (ui.InputClosed)
             {
-                return;
+                return false;
             }
 
             if (choice is null)
@@ -43,13 +46,13 @@ public sealed class MainMenu(
             {
                 ui.Blank();
                 ui.Muted("Goodbye.");
-                return;
+                return false;
             }
 
             if (choice == available.Count + 1)
             {
-                SwitchUser();
-                continue;
+                session.SignOut();
+                return true;
             }
 
             RunScreen(available[choice.Value - 1]);
@@ -85,7 +88,7 @@ public sealed class MainMenu(
     private void ShowWelcome()
     {
         ui.Header("Event Booking System");
-        ui.Muted("Demo data is loaded. The menu shows only what your role may do - switch user to see the other side.");
+        ui.Muted("The menu shows only what your role may do - sign out and back in as somebody else to see the other side.");
         ui.Muted("Use 'Simulation' to move the clock and watch the time based rules fire.");
     }
 
@@ -99,7 +102,7 @@ public sealed class MainMenu(
             ui.Write($"  {Format.Number(index + 1),2}. {available[index].Title}");
         }
 
-        ui.Write($"  {Format.Number(available.Count + 1),2}. Switch user");
+        ui.Write($"  {Format.Number(available.Count + 1),2}. Sign out");
         ui.Write($"  {Format.Number(0),2}. Exit");
         ui.Blank();
     }
@@ -111,30 +114,4 @@ public sealed class MainMenu(
         _ => session.CurrentRole.ToString(),
     };
 
-    private void SwitchUser()
-    {
-        ui.Section("Switch user");
-        ui.Muted("  The menu changes with the role you pick.");
-
-        var everyone = users.GetAll().OrderBy(user => user.Role).ThenBy(user => user.FullName).ToList();
-        var chosen = ui.Choose("Sign in as", everyone, Describe);
-
-        if (chosen is not null)
-        {
-            session.SignIn(chosen);
-            ui.Success($"Now signed in as {chosen.FullName}.");
-        }
-
-        ui.Pause();
-        ui.Clear();
-    }
-
-    private static string Describe(User user) => user switch
-    {
-        Customer customer =>
-            $"{customer.FullName,-16} customer   {customer.Tier,-8} "
-            + $"{Format.Number(customer.CompletedBookings)} completed booking(s)",
-        Organizer organizer => $"{organizer.FullName,-16} organiser  {organizer.OrganizationName}",
-        _ => user.FullName,
-    };
 }

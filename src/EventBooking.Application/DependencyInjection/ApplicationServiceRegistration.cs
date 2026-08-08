@@ -1,4 +1,5 @@
 using EventBooking.Application.Abstractions;
+using EventBooking.Application.Authentication;
 using EventBooking.Application.Bookings;
 using EventBooking.Application.Catalog;
 using EventBooking.Application.Maintenance;
@@ -39,6 +40,9 @@ public static class ApplicationServiceRegistration
         services.AddSingleton(provider => new PricingEngine(provider.GetServices<IPricingRule>()));
 
         services.AddSingleton(ReportingOptions.Default);
+
+        // Swapping in a real sign-in means changing this line and nothing else.
+        services.AddSingleton<IAuthenticator, DirectoryAuthenticator>();
 
         services.AddSingleton<CustomerNotifier>();
         services.AddSingleton<BookingService>();
