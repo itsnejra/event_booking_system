@@ -15,7 +15,10 @@ dotnet test
 ```
 
 Aplikacija se pokreće sa napunjenim demo podacima (četiri događaja, četiri kupca, deset rezervacija),
-pa se sve niže opisano može odmah vidjeti u radu. Testova ima 241 i prolaze svi.
+pa se sve niže opisano može odmah vidjeti u radu. Testova ima 252 i prolaze svi.
+
+Ko želi proći aplikaciju rukom, [TESTING.md](TESTING.md) vodi kroz sedam scenarija sa očekivanim
+ishodom svakog koraka.
 
 ---
 
@@ -254,12 +257,12 @@ uživo, umjesto u dokumentaciji. U produkciji se registruje `SystemClock` i niš
 
 ## Testovi
 
-241 test, podijeljen po tome šta dokazuju:
+252 testa, podijeljena po tome šta dokazuju:
 
 | Projekat | Šta pokriva |
 |---|---|
-| `EventBooking.Domain.Tests` (179) | Pravila u izolaciji: aritmetika novca, invarijante alokacije, životni ciklus događaja, pravila po tipu događaja, vlasništvo nad događajem, prelasci stanja rezervacije, slaganje popusta i granica, politike povrata, kompozicija specifikacija |
-| `EventBooking.Application.Tests` (62) | Cijeli tokovi kroz stvarne servise, stvarni domen i in-memory repozitorije |
+| `EventBooking.Domain.Tests` (186) | Pravila u izolaciji: aritmetika novca, invarijante alokacije, životni ciklus događaja, pravila po tipu događaja, vlasništvo nad događajem, prelasci stanja rezervacije, slaganje popusta i granica, politike povrata, kompozicija specifikacija |
+| `EventBooking.Application.Tests` (66) | Cijeli tokovi kroz stvarne servise, stvarni domen i in-memory repozitorije |
 
 Aplikacijski testovi **ne koriste mock biblioteke**. Ono što je ovdje zanimljivo *jeste* način na
 koji dijelovi rade zajedno; mock bi samo potvrdio da test poznaje vlastito ožičenje. Umjesto toga,
