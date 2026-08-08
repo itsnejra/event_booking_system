@@ -20,6 +20,8 @@ public sealed class OrganizerScreen(
     private static readonly string[] ManageActions =
         ["Add a ticket type", "Publish", "Reschedule", "Cancel the event"];
 
+    private const string AddSessionAction = "Add a session to the programme";
+
     public string Title => "Organiser - manage my events";
 
     public UserRole? RequiredRole => UserRole.Organizer;
@@ -180,11 +182,20 @@ public sealed class OrganizerScreen(
             return;
         }
 
+        // A conference cannot go on sale without a programme, so the action is offered where it applies.
+        var actions = @event is ConferenceEvent
+            ? [.. ManageActions, AddSessionAction]
+            : ManageActions;
+
         ui.Blank();
-        switch (ui.Choose("Action", ManageActions, option => option))
+        switch (ui.Choose("Action", actions, option => option))
         {
             case "Add a ticket type":
                 AddTicketTypes(@event);
+                break;
+
+            case AddSessionAction:
+                AddSessions((ConferenceEvent)@event);
                 break;
 
             case "Publish":
@@ -205,6 +216,45 @@ public sealed class OrganizerScreen(
 
             default:
                 break;
+        }
+    }
+
+    /// <summary>The programme of a conference, one talk at a time, until an empty title stops it.</summary>
+    private void AddSessions(ConferenceEvent conference)
+    {
+        while (true)
+        {
+            ui.Blank();
+            ui.Muted($"  Conference runs {Format.Range(conference.Schedule)}.");
+            ui.Muted($"  {Format.Number(conference.Sessions.Count)} talk(s) in the programme so far.");
+
+            var title = ui.Ask("Talk title (Enter to stop)");
+            if (title is null)
+            {
+                return;
+            }
+
+            var speaker = ui.AskRequired("Speaker");
+            var track = ui.AskRequired("Track");
+            var startsAfter = ui.AskInteger("Starts how many hours into the conference?", 0, 240);
+            var hours = ui.AskInteger("Length in hours", 1, 24);
+
+            if (speaker is null || track is null || startsAfter is null || hours is null)
+            {
+                ui.Muted("  Skipped.");
+                continue;
+            }
+
+            var start = conference.Schedule.Start.AddHours(startsAfter.Value);
+            var slot = new DateRange(start, start.AddHours(hours.Value));
+
+            if (ui.Try(() => catalog.AddSession(
+                conference.Id,
+                session.Organizer.Id,
+                new ConferenceSession(title, speaker, track, slot))))
+            {
+                ui.Success($"Added '{title}' to the {track} track.");
+            }
         }
     }
 

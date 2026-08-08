@@ -61,7 +61,3 @@ dotnet_code_quality.CA1711.allowed_suffixes = EventHandler
 dotnet_diagnostic.CA1848.severity = none
 dotnet_diagnostic.CA1303.severity = none
 
-[tests/**/*.cs]
-# Test methods are named Method_Scenario_Expectation. The underscores are the convention that makes a
-# failing test readable in a report; CA1707 is written for public API surface, which tests are not.
-dotnet_diagnostic.CA1707.severity = none

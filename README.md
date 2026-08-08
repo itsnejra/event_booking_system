@@ -154,10 +154,7 @@ Prijava postoji kao granica, ali se ništa ne dokazuje. Lozinka bi se provjerava
 nestane kad se aplikacija ugasi, dakle izgled sigurnosti bez sigurnosti. Prava implementacija mijenja
 jednu klasu i jedan red registracije.
 
-Konferencija se kroz konzolu ne može objaviti, jer traži program, a ekran za dodavanje sesija nije
-napravljen. Domen to podržava i demo podaci ga koriste.
-
-Tri analizatorska pravila su isključena, svako sa obrazloženjem u `.editorconfig`. Ostalo se gradi sa
+Četiri analizatorska pravila su isključena, svako sa obrazloženjem u `.editorconfig`. Ostalo se gradi sa
 `TreatWarningsAsErrors`, dakle upozorenje ruši build, i trenutno ih nema nijedno.
 
 ## Kako se ovo proširuje

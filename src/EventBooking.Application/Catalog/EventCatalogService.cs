@@ -90,6 +90,17 @@ public sealed class EventCatalogService(
             request.SalesWindow);
     }
 
+    /// <summary>Adds one talk to a conference programme.</summary>
+    public void AddSession(EventId eventId, UserId actingOrganizer, ConferenceSession talk)
+    {
+        if (GetById(eventId) is not ConferenceEvent conference)
+        {
+            throw new BusinessRuleViolationException("Only a conference has a programme.");
+        }
+
+        conference.AddSession(actingOrganizer, talk);
+    }
+
     public void Publish(EventId eventId, UserId actingOrganizer)
     {
         var @event = GetById(eventId);
