@@ -159,10 +159,4 @@ Opcija `6` vraća sat na stvarno vrijeme ako treba počinjati ispočetka.
 
 ---
 
-## Automatski testovi
-
-```bash
-dotnet test
-```
-
-252 testa, bez mock biblioteka. Detaljna podjela je u [README](README.md#testovi).
+Opis arhitekture, dizajnerskih odluka i svjesnih kompromisa je u [README](README.md).

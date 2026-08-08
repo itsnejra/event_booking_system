@@ -5,8 +5,4 @@
     <Project Path="src/EventBooking.Domain/EventBooking.Domain.csproj" />
     <Project Path="src/EventBooking.Infrastructure/EventBooking.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/EventBooking.Application.Tests/EventBooking.Application.Tests.csproj" />
-    <Project Path="tests/EventBooking.Domain.Tests/EventBooking.Domain.Tests.csproj" />
-  </Folder>
 </Solution>

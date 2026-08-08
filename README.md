@@ -2,20 +2,15 @@
 
 Objektno orijentisana aplikacija za rezervaciju ulaznica, pisana u C# / .NET 9.
 
-Rješenje je podijeljeno u četiri projekta sa jednosmjernim zavisnostima, plus dva projekta sa
-testovima. Domenski sloj nosi sva poslovna pravila i nema nijednu vanjsku zavisnost — ni NuGet
-paket, ni referencu na drugi projekat.
+Rješenje je podijeljeno u četiri projekta sa jednosmjernim zavisnostima. Domenski sloj nosi sva
+poslovna pravila i nema nijednu vanjsku zavisnost — ni NuGet paket, ni referencu na drugi projekat.
 
 ```bash
 dotnet run --project src/EventBooking.ConsoleApp
 ```
 
-```bash
-dotnet test
-```
-
 Aplikacija se pokreće sa napunjenim demo podacima (četiri događaja, četiri kupca, deset rezervacija),
-pa se sve niže opisano može odmah vidjeti u radu. Testova ima 252 i prolaze svi.
+pa se sve niže opisano može odmah vidjeti u radu.
 
 Ko želi proći aplikaciju rukom, [TESTING.md](TESTING.md) vodi kroz sedam scenarija sa očekivanim
 ishodom svakog koraka.
@@ -29,7 +24,6 @@ ishodom svakog koraka.
 - [Domenski model](#domenski-model)
 - [Gdje su OOP principi i zašto baš tu](#gdje-su-oop-principi-i-zašto-baš-tu)
 - [Vrijeme kao zavisnost](#vrijeme-kao-zavisnost)
-- [Testovi](#testovi)
 - [Svjesni kompromisi](#svjesni-kompromisi)
 - [Kako se ovo proširuje](#kako-se-ovo-proširuje)
 - [Struktura repozitorija](#struktura-repozitorija)
@@ -120,7 +114,7 @@ jedino mjesto u sistemu gdje se dva agregata mijenjaju u istoj operaciji, i to j
 kod prelaska na pravu bazu tačno zna gdje ide transakcija.
 
 **Inventar je podijeljen na tri kante** (`TicketAllocation`): `Available`, `Reserved`, `Sold`. Zbir je
-uvijek jednak kapacitetu, i to je invarijanta koju testovi provjeravaju direktno. Zahvaljujući tome,
+uvijek jednak kapacitetu, i to je invarijanta koju agregat održava sam. Zahvaljujući tome,
 napuštena kupovina i otkazana plaćena rezervacija vraćaju mjesta iz *različitih* kanti, što je razlika
 koju bi jedan brojač izgubio.
 
@@ -152,7 +146,7 @@ Podklase se ne razlikuju po podacima nego po **ponašanju**. Bazna klasa drži t
 | Periodična provjera | — | — | sama se otkaže 48h prije ako se ne popuni |
 
 Ako ovi redovi ne bi mogli biti različiti, nasljeđivanje ovdje ne bi bilo zasluženo i tri klase bi
-trebale biti jedan `EventType` enum. Testovi u `EventTypeRuleTests` provjeravaju upravo te razlike.
+trebale biti jedan `EventType` enum.
 
 ### Strategija: `IRefundPolicy` i `IPricingRule`
 
@@ -165,15 +159,14 @@ dira klasu `Booking` uopšte.
 
 `PricingEngine` prolazi kroz registrovana pravila po prioritetu i sabire popuste **do gornje granice**
 (35%). Kad bi pravilo probilo granicu, ono se **skrati na preostali prostor** umjesto da se odbaci —
-tako rezultat ne zavisi od toga kojim redom se granica dostigne. To je jedna od stvari koje je lako
-pogriješiti, pa ima svoj test.
+tako rezultat ne zavisi od toga kojim redom se granica dostigne.
 
 ### Specifikacija: pretraga
 
 Filteri su objekti (`EventInCategorySpecification`, `EventWithinBudgetSpecification`, …) koje
 `EventSearchCriteria` slaže operatorima `And` / `Or` / `Not`. Zahvaljujući tome, novo polje u pretrazi
 je jedan `if` u `ToSpecification()`, a repozitorij se ne dira. Alternativa — `Func<Event, bool>`
-razbacan po servisima — ne može se ni imenovati ni testirati zasebno.
+razbacan po servisima — ne može se ni imenovati ni ponovo upotrijebiti.
 
 ### Domenski događaji i observer
 
@@ -247,40 +240,11 @@ ponuditi listu čekanja bez novog upita.
 
 Pola ovog domena zavisi od vremena: early bird popust, prozori za povrat novca, isticanje rezervacije,
 prodajni prozor karata, održivost radionice, zatvaranje završenog događaja. Nijedno od toga se ne bi
-moglo testirati da pravila zovu `DateTimeOffset.UtcNow`.
+moglo pokazati u radu da pravila zovu `DateTimeOffset.UtcNow`.
 
 Zato postoji `IClock`, a konzola ga koristi za nešto što se inače rijetko vidi: **meni „Simulation“
 pomjera sat naprijed**. Rezervacija istekne, popust nestane, radionica se sama otkaže i vrati novac —
 uživo, umjesto u dokumentaciji. U produkciji se registruje `SystemClock` i ništa drugo se ne mijenja.
-
----
-
-## Testovi
-
-252 testa, podijeljena po tome šta dokazuju:
-
-| Projekat | Šta pokriva |
-|---|---|
-| `EventBooking.Domain.Tests` (186) | Pravila u izolaciji: aritmetika novca, invarijante alokacije, životni ciklus događaja, pravila po tipu događaja, vlasništvo nad događajem, prelasci stanja rezervacije, slaganje popusta i granica, politike povrata, kompozicija specifikacija |
-| `EventBooking.Application.Tests` (66) | Cijeli tokovi kroz stvarne servise, stvarni domen i in-memory repozitorije |
-
-Aplikacijski testovi **ne koriste mock biblioteke**. Ono što je ovdje zanimljivo *jeste* način na
-koji dijelovi rade zajedno; mock bi samo potvrdio da test poznaje vlastito ožičenje. Umjesto toga,
-`TestHost` diže cijeli sistem kroz iste `AddEventBooking…` ekstenzije koje koristi i konzola, pa
-propuštena registracija pada u testu, a ne pri pokretanju.
-
-Nekoliko testova koji nose najviše težine:
-
-- `Reserve_WhenALaterLineFails_LeavesNoSeatsHeld` — narudžba se validira u cijelosti prije nego se
-  zauzme ijedno mjesto.
-- `StackedDiscounts_AreCappedAndTheLastOneIsTrimmedToFit` — granica popusta je deterministična.
-- `AWorkshopThatDidNotFillUpCancelsItselfAndRefundsEveryone` — cijeli lanac: agregat odluči, servis
-  primijeti, rezervacije se vrate.
-- `ReleasedSeats_ReachTheFrontOfTheWaitingList` — lista čekanja radi bez ijednog spominjanja u servisu.
-- `AFailedCancellationLeavesTheBookingsUntouched` — odbijena autorizacija ne ostavlja polovično
-  otkazan događaj.
-- `ATierGrantedUpFront_IsNotLostOnTheNextBooking` — greška koju je otkrilo pokretanje aplikacije, pa
-  je dobila test.
 
 ---
 
@@ -369,7 +333,4 @@ src/
   EventBooking.ConsoleApp/
     Screens/                      meni i ekrani
     Ui/                           IUserInterface, ConsoleUi, formatiranje
-tests/
-  EventBooking.Domain.Tests/
-  EventBooking.Application.Tests/
 ```
