@@ -1,4 +1,4 @@
-using EventBooking.Domain.ValueObjects;
+using EventBooking.Domain.Enums;
 
 namespace EventBooking.Application.Reporting;
 

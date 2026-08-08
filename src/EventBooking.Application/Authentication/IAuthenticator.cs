@@ -1,4 +1,4 @@
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Entities;
 
 namespace EventBooking.Application.Authentication;
 

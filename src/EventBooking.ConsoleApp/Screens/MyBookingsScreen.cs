@@ -1,9 +1,9 @@
 using EventBooking.Application.Bookings;
 using EventBooking.Application.Catalog;
 using EventBooking.ConsoleApp.Ui;
-using EventBooking.Domain.Abstractions;
-using EventBooking.Domain.Bookings;
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Enums;
+using EventBooking.Domain.Interfaces;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.ConsoleApp.Screens;

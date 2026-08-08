@@ -1,4 +1,4 @@
-using EventBooking.Domain.Abstractions;
+using EventBooking.Domain.Interfaces;
 
 namespace EventBooking.Infrastructure.Time;
 

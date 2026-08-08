@@ -1,6 +1,6 @@
-using EventBooking.Domain.Abstractions;
-using EventBooking.Domain.Events;
-using EventBooking.Domain.Events.Specifications;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Enums;
+using EventBooking.Domain.Specifications;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Application.Catalog;

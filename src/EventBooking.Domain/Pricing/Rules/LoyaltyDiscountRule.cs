@@ -1,4 +1,7 @@
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Enums;
+using EventBooking.Domain.Interfaces;
+using EventBooking.Domain.Pricing;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Domain.Pricing.Rules;

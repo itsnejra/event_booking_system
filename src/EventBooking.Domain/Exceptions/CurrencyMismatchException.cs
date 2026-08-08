@@ -1,3 +1,6 @@
+
+using EventBooking.Domain.ValueObjects;
+
 namespace EventBooking.Domain.Exceptions;
 
 /// <summary>

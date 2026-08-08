@@ -1,10 +1,9 @@
 using EventBooking.Application.Abstractions;
-using EventBooking.Domain.Abstractions;
-using EventBooking.Domain.Bookings;
-using EventBooking.Domain.Events;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Enums;
 using EventBooking.Domain.Exceptions;
+using EventBooking.Domain.Interfaces;
 using EventBooking.Domain.Pricing;
-using EventBooking.Domain.Users;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Application.Bookings;

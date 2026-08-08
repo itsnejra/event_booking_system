@@ -1,5 +1,5 @@
 using EventBooking.ConsoleApp.Ui;
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Enums;
 using EventBooking.Infrastructure.Notifications;
 
 namespace EventBooking.ConsoleApp.Screens;

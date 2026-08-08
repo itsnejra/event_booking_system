@@ -1,4 +1,5 @@
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Enums;
 
 namespace EventBooking.ConsoleApp;
 

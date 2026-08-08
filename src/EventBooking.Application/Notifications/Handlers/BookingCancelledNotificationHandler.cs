@@ -1,6 +1,8 @@
 using EventBooking.Application.Abstractions;
-using EventBooking.Domain.Abstractions;
-using EventBooking.Domain.Bookings;
+using EventBooking.Domain.DomainEvents;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Interfaces;
+using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Application.Notifications.Handlers;
 

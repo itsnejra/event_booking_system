@@ -1,3 +1,4 @@
+
 namespace EventBooking.Domain.Common;
 
 /// <summary>

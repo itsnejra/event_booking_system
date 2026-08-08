@@ -1,6 +1,6 @@
 using EventBooking.Application.Maintenance;
 using EventBooking.ConsoleApp.Ui;
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Enums;
 using EventBooking.Infrastructure.Time;
 
 namespace EventBooking.ConsoleApp.Screens;

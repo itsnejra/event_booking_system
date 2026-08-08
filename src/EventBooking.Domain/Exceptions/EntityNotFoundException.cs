@@ -1,3 +1,4 @@
+
 namespace EventBooking.Domain.Exceptions;
 
 /// <summary>Something was referenced by identifier but does not exist.</summary>

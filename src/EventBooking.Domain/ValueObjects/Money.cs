@@ -1,4 +1,5 @@
 using System.Globalization;
+using EventBooking.Domain.Enums;
 using EventBooking.Domain.Exceptions;
 
 namespace EventBooking.Domain.ValueObjects;

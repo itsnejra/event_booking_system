@@ -1,3 +1,4 @@
+
 namespace EventBooking.Domain.Exceptions;
 
 /// <summary>The requested operation would break a rule of the business.</summary>

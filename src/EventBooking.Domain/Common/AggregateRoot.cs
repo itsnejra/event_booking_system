@@ -1,3 +1,5 @@
+using EventBooking.Domain.ValueObjects;
+
 namespace EventBooking.Domain.Common;
 
 /// <summary>

@@ -1,7 +1,7 @@
 using EventBooking.Application.Abstractions;
 using EventBooking.Application.Bookings;
-using EventBooking.Domain.Abstractions;
-using EventBooking.Domain.Events;
+using EventBooking.Domain.Enums;
+using EventBooking.Domain.Interfaces;
 
 namespace EventBooking.Application.Maintenance;
 

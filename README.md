@@ -319,14 +319,14 @@ pozivaju i ekrani.
 src/
   EventBooking.Domain/            bez ijedne zavisnosti
     Common/                       Entity, AggregateRoot, Guard, IDomainEvent
+    Entities/                     Event + tri podklase, Booking, User + podklase, Venue, TicketType
     ValueObjects/                 Money, Percentage, DateRange, EmailAddress, identifikatori
-    Events/                       Event + tri podklase, TicketType, TicketAllocation, lista čekanja
-      Specifications/             filteri kataloga
-    Bookings/                     Booking, BookingLine, domenski događaji
-    Pricing/                      PricingEngine + pravila
-    Refunds/                      IRefundPolicy + politike
-    Users/, Venues/               Customer, Organizer, Venue
-    Abstractions/                 IClock, repozitoriji, Specification<T>
+    Enums/                        statusi, kategorije, nivoi karata i članstva
+    Interfaces/                   IClock, repozitoriji, IPricingRule, IRefundPolicy, ISpecification
+    Specifications/               Specification<T> i filteri kataloga
+    DomainEvents/                 događaji rezervacije i događaja
+    Pricing/                      PricingEngine + Rules/
+    Refunds/                      politike povrata
     Exceptions/                   DomainException i potomci
   EventBooking.Application/
     Authentication/               IAuthenticator + implementacija

@@ -1,3 +1,4 @@
+
 namespace EventBooking.Domain.ValueObjects;
 
 // Identifiers get their own types rather than being raw Guids. It costs a few lines here and buys

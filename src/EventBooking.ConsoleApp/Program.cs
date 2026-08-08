@@ -3,16 +3,11 @@ using EventBooking.Application.DependencyInjection;
 using EventBooking.ConsoleApp;
 using EventBooking.ConsoleApp.Screens;
 using EventBooking.ConsoleApp.Ui;
-using EventBooking.Domain.Abstractions;
+using EventBooking.Domain.Interfaces;
 using EventBooking.Infrastructure.DependencyInjection;
 using EventBooking.Infrastructure.Seeding;
 using EventBooking.Infrastructure.Time;
 using Microsoft.Extensions.DependencyInjection;
-
-// Composition root. This is the only place in the solution that knows about every layer at once;
-// everything else depends on abstractions and is handed what it needs.
-Console.OutputEncoding = Encoding.UTF8;
-
 using var provider = BuildServiceProvider();
 
 provider.GetRequiredService<DemoDataSeeder>().Seed();

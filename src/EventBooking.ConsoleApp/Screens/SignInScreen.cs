@@ -1,7 +1,7 @@
 using EventBooking.Application.Authentication;
 using EventBooking.ConsoleApp.Ui;
-using EventBooking.Domain.Abstractions;
-using EventBooking.Domain.Users;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Interfaces;
 
 namespace EventBooking.ConsoleApp.Screens;
 

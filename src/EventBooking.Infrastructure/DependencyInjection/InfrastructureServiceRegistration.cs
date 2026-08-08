@@ -1,6 +1,6 @@
 using EventBooking.Application.Abstractions;
 using EventBooking.Application.Notifications;
-using EventBooking.Domain.Abstractions;
+using EventBooking.Domain.Interfaces;
 using EventBooking.Infrastructure.Identity;
 using EventBooking.Infrastructure.Messaging;
 using EventBooking.Infrastructure.Notifications;

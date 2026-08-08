@@ -1,5 +1,4 @@
 using System.Globalization;
-using EventBooking.Domain.Common;
 
 namespace EventBooking.Domain.ValueObjects;
 

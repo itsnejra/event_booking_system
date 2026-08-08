@@ -1,3 +1,4 @@
+
 namespace EventBooking.Domain.Exceptions;
 
 /// <summary>An operation was attempted from a state that does not allow it.</summary>

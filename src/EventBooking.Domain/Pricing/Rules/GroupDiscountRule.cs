@@ -1,4 +1,6 @@
 using EventBooking.Domain.Common;
+using EventBooking.Domain.Interfaces;
+using EventBooking.Domain.Pricing;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Domain.Pricing.Rules;

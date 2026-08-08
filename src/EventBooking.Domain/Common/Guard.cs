@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using EventBooking.Domain.Exceptions;
 
 namespace EventBooking.Domain.Common;
 

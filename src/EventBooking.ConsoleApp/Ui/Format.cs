@@ -1,5 +1,5 @@
 using System.Globalization;
-using EventBooking.Domain.Events;
+using EventBooking.Domain.Entities;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.ConsoleApp.Ui;

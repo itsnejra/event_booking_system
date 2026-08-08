@@ -1,6 +1,6 @@
-using EventBooking.Domain.Abstractions;
+using EventBooking.Domain.Entities;
+using EventBooking.Domain.Interfaces;
 using EventBooking.Domain.ValueObjects;
-using EventBooking.Domain.Venues;
 
 namespace EventBooking.Infrastructure.Persistence;
 

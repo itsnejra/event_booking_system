@@ -1,3 +1,4 @@
+using EventBooking.Domain.Enums;
 using EventBooking.Domain.ValueObjects;
 
 namespace EventBooking.Application.Catalog;
