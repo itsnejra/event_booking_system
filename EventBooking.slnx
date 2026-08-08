@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/EventBooking.Application/EventBooking.Application.csproj" />
-    <Project Path="src/EventBooking.ConsoleApp/EventBooking.ConsoleApp.csproj" />
-    <Project Path="src/EventBooking.Domain/EventBooking.Domain.csproj" />
-    <Project Path="src/EventBooking.Infrastructure/EventBooking.Infrastructure.csproj" />
-  </Folder>
-</Solution>
