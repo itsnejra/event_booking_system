@@ -132,6 +132,46 @@ public sealed class ReportingServiceTests
     }
 
     [Fact]
+    public void TopCustomers_DoNotCountMoneyThatWentBack()
+    {
+        using var host = new TestHost();
+        var concert = host.PublishConcert(seats: 50, daysAhead: 45);
+        var customer = host.AddCustomer(name: "Vratila karte");
+
+        var kept = PayAs(host, concert, customer, 2);
+        var returned = PayAs(host, concert, customer, 3);
+        host.Bookings.Cancel(returned.Id, "Promjena planova");
+
+        var line = Assert.Single(host.Reporting.TopCustomers());
+
+        // Fully refunded, so neither the money nor the seats are still theirs - but they did book twice.
+        Assert.Equal(kept.Total, line.TotalSpend);
+        Assert.Equal(2, line.TicketsBought);
+        Assert.Equal(2, line.Bookings);
+    }
+
+    [Fact]
+    public void TopCustomers_KeepWhatAPartialRefundDidNotReturn()
+    {
+        using var host = new TestHost();
+        var concert = host.PublishConcert(seats: 50, daysAhead: 5);
+        var customer = host.AddCustomer(name: "Kasno otkazala");
+
+        var booking = PayAs(host, concert, customer, 2);
+        host.Bookings.Cancel(booking.Id, "Kasno otkazivanje");
+
+        var refundOrNothing = host.Bookings.GetById(booking.Id).RefundAmount;
+        Assert.NotNull(refundOrNothing);
+
+        var refunded = refundOrNothing.Value;
+        var line = Assert.Single(host.Reporting.TopCustomers());
+
+        Assert.True(refunded.IsPositive && refunded < booking.Total, "This tier should refund only a part.");
+        Assert.Equal(booking.Total - refunded, line.TotalSpend);
+        Assert.Equal(0, line.TicketsBought);
+    }
+
+    [Fact]
     public void Summary_CountsSoldOutEvents()
     {
         using var host = new TestHost();

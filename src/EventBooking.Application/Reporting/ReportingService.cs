@@ -112,10 +112,20 @@ public sealed class ReportingService(
             refunds);
     }
 
+    /// <summary>
+    /// Spend and tickets are counted the same way the per-event report counts them: a cancellation
+    /// gives back whatever the refund policy returned, and the seats go with it. What the policy did
+    /// not return is still spend, so a partial refund leaves the retained part standing. The booking
+    /// count stays whole - it is how many times this person bought, cancellations included, which is
+    /// what the Cancelled column of the per-event report also does.
+    /// </summary>
     private CustomerActivityLine ToActivityLine(Customer customer, List<Booking> customerBookings) =>
         new(
             customer,
             customerBookings.Count,
-            customerBookings.Sum(booking => booking.TotalTickets),
-            Money.Sum(customerBookings.Select(booking => booking.Total), options.Currency));
+            customerBookings.Where(booking => booking.IsPaidFor).Sum(booking => booking.TotalTickets),
+            Money.Sum(
+                customerBookings.Select(booking =>
+                    booking.Total.SubtractOrZero(booking.RefundAmount ?? Money.Zero(options.Currency))),
+                options.Currency));
 }
