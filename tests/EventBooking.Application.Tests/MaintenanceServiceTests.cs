@@ -69,6 +69,58 @@ public sealed class MaintenanceServiceTests
         Assert.Equal(booking.Total, booking.RefundAmount);
     }
 
+    /// <summary>
+    /// Calling an event off has to give its seats back too, or it goes on reporting them as sold
+    /// long after every booking was refunded - and the platform totals inherit that.
+    /// </summary>
+    [Fact]
+    public void ACancelledEventGivesBackBothSoldSeatsAndLiveHolds()
+    {
+        using var host = new TestHost();
+        var workshop = host.PublishWorkshop(seats: 10, minimumAttendees: 6, daysAhead: 1);
+
+        var paid = host.Bookings.PlaceHold(
+            host.AddCustomer().Id,
+            workshop.Id,
+            TestHost.Order(workshop, "Kotizacija", 2));
+        host.Bookings.Confirm(paid.Id);
+
+        // Left unpaid on purpose: its seats sit in the held bucket, not the sold one.
+        host.Bookings.PlaceHold(
+            host.AddCustomer().Id,
+            workshop.Id,
+            TestHost.Order(workshop, "Kotizacija", 1));
+
+        var summary = host.Maintenance.Run();
+
+        Assert.Equal(1, summary.CancelledEvents);
+        Assert.Equal(2, summary.RefundedBookings);
+        Assert.Equal(EventStatus.Cancelled, workshop.Status);
+        Assert.Equal(0, workshop.TicketsSold);
+        Assert.Equal(0, workshop.TicketsOnHold);
+        Assert.Equal(10, workshop.AvailableTickets);
+    }
+
+    [Fact]
+    public void ACancelledEventReportsNothingSold()
+    {
+        using var host = new TestHost();
+        var workshop = host.PublishWorkshop(seats: 10, minimumAttendees: 6, daysAhead: 1);
+        var booking = host.Bookings.PlaceHold(
+            host.AddCustomer().Id,
+            workshop.Id,
+            TestHost.Order(workshop, "Kotizacija", 2));
+        host.Bookings.Confirm(booking.Id);
+
+        host.Maintenance.Run();
+
+        var report = host.Reporting.ForEvent(workshop.Id);
+
+        Assert.Equal(0, report.TicketsSold);
+        Assert.True(report.NetRevenue.IsZero);
+        Assert.Equal(0, host.Reporting.Summary().TicketsSold);
+    }
+
     [Fact]
     public void AWorkshopThatReachedItsMinimumIsLeftAlone()
     {

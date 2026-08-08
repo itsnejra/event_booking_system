@@ -109,8 +109,15 @@ public sealed class BookingService(
 
         foreach (var booking in affected)
         {
+            // The seats go back for the same reason they do when a customer cancels: nobody holds
+            // them any more. Without this the event keeps reporting them as sold long after every
+            // booking was refunded. The waiting list is not disturbed - its handler only speaks for
+            // events that are still published.
+            var wasPaidFor = booking.IsPaidFor;
             booking.CancelBecauseEventCancelled(now, reason);
-            dispatcher.Dispatch(booking);
+            @event.ReleaseReservation(booking.AsReservation(), wasPaidFor, now);
+
+            dispatcher.Dispatch(@event, booking);
         }
 
         return affected;
