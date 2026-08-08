@@ -1,55 +1,26 @@
 # Event Booking System
 
-Objektno orijentisana aplikacija za rezervaciju ulaznica, pisana u C# / .NET 9.
-
-Rješenje je podijeljeno u četiri projekta sa jednosmjernim zavisnostima. Domenski sloj nosi sva
-poslovna pravila i nema nijednu vanjsku zavisnost — ni NuGet paket, ni referencu na drugi projekat.
+Konzolna aplikacija za rezervaciju ulaznica, C# i .NET 9.
 
 ```bash
 dotnet run --project src/EventBooking.ConsoleApp
 ```
 
-Aplikacija se pokreće sa napunjenim demo podacima (četiri događaja, četiri kupca, deset rezervacija),
-pa se sve niže opisano može odmah vidjeti u radu.
+Pokreće se sa demo podacima (četiri događaja, četiri kupca, deset rezervacija), pa se sve može odmah
+vidjeti u radu. Prvo traži prijavu, a meni koji dobiješ zavisi od toga jesi li kupac ili organizator.
 
-Ko želi proći aplikaciju rukom, [TESTING.md](TESTING.md) vodi kroz sedam scenarija sa očekivanim
-ishodom svakog koraka.
+U [TESTING.md](TESTING.md) sam zapisala kojim redom sam prolazila kroz aplikaciju kad sam je testirala
+kod sebe, sa očekivanim ishodom svakog koraka.
 
----
+## Šta sam htjela riješiti
 
-## Sadržaj
+Tema je široka, pa sam prvo pokušala shvatiti šta je tu zapravo teško. Nije broj funkcionalnosti,
+nego to da brojevi ostanu tačni kad se stvari poklope: dvoje ljudi grabi zadnje mjesto, neko krene u
+kupovinu pa odustane, organizator otkaže događaj kad je 200 ljudi već platilo, radionica se ne popuni.
 
-- [Kako je zamišljen problem](#kako-je-zamišljen-problem)
-- [Arhitektura](#arhitektura)
-- [Domenski model](#domenski-model)
-- [Gdje su OOP principi i zašto baš tu](#gdje-su-oop-principi-i-zašto-baš-tu)
-- [Vrijeme kao zavisnost](#vrijeme-kao-zavisnost)
-- [Svjesni kompromisi](#svjesni-kompromisi)
-- [Kako se ovo proširuje](#kako-se-ovo-proširuje)
-- [Struktura repozitorija](#struktura-repozitorija)
-
----
-
-## Kako je zamišljen problem
-
-Tema je namjerno široka, pa je prva odluka bila **šta je ovdje zapravo teško**. Broj funkcionalnosti
-nije problem — problem je da sistem ostane tačan kada se stvari preklope:
-
-- dvoje ljudi kupuje posljednje mjesto u istom trenutku,
-- neko započne kupovinu pa je napusti, a mjesta ostanu zauzeta zauvijek,
-- organizator otkaže događaj nakon što je 200 ljudi platilo,
-- radionica se ne popuni i nema smisla da se održi,
-- cijena zavisi od toga ko kupuje, koliko kupuje i kada kupuje.
-
-Sve ovo su pravila koja **ne smiju zavisiti od discipline programera** koji sutra doda novi ekran.
-Zato su smještena unutar agregata, gdje ih se ne može zaobići, umjesto u servise gdje ih se lako
-zaboravi pozvati.
-
-Konkretno: **mjesta se oduzimaju iz fonda čim korisnik krene u kupovinu**, ne kada plati. Rezervacija
-je vremenski ograničena (`Booking` u stanju `Pending`), i ako niko ne plati, mjesta se sama vrate.
-To je jedina varijanta u kojoj brojevi ostaju tačni bez zaključavanja cijele baze.
-
----
+Zato sam mjesta odlučila oduzimati iz fonda **čim korisnik krene u kupovinu**, a ne kad plati.
+Rezervacija ima rok, i ako plaćanje ne stigne, mjesta se sama vrate. Sva takva pravila sam smjestila
+u same agregate, da ih se ne može zaobići dodavanjem novog ekrana.
 
 ## Arhitektura
 
@@ -58,24 +29,12 @@ flowchart LR
     UI["ConsoleApp<br/><i>ekrani, unos, ispis</i>"] --> INF
     INF["Infrastructure<br/><i>in-memory baza, sat, dispatcher</i>"] --> APP
     APP["Application<br/><i>servisi, izvještaji, notifikacije</i>"] --> DOM
-    DOM["Domain<br/><i>pravila — bez ijedne zavisnosti</i>"]
+    DOM["Domain<br/><i>pravila, bez ijedne zavisnosti</i>"]
 ```
 
-Strelice idu samo u jednom smjeru. Domen ne zna da postoji konzola, baza ni DI kontejner; on
-deklariše šta mu treba (`IClock`, `IEventRepository`, `IBookingReferenceGenerator`), a neko drugi to
-dostavlja.
-
-| Sloj | Odgovornost | Šta namjerno **nije** tu |
-|---|---|---|
-| **Domain** | Entiteti, agregati, vrijednosni objekti, poslovna pravila, domenski događaji | Bilo kakav I/O, framework, `DateTime.Now` |
-| **Application** | Orkestracija slučajeva upotrebe, pretraga, izvještaji, notifikacije | Poslovna pravila (ona su u domenu) |
-| **Infrastructure** | In-memory repozitoriji, sat, generator referenci, dispatcher, demo podaci | Odluke o tome *šta* je dozvoljeno |
-| **ConsoleApp** | Meni, unos, formatiranje, composition root | Ijedna poslovna odluka |
-
-Da ovo nije samo namjera, čuva `EventBooking.Domain.csproj` — prazan je. Ako mu ikada zatreba
-`<ItemGroup>`, znači da je nešto procurilo unutra.
-
----
+Slojevi su odvojeni u četiri projekta, a ne u foldere, jer sam htjela da zavisnost bude nemoguća a ne
+samo nepoželjna. `EventBooking.Domain.csproj` nema nijednu referencu ni NuGet paket. Ako mu ikad
+zatreba, znači da je nešto procurilo unutra.
 
 ## Domenski model
 
@@ -108,239 +67,124 @@ classDiagram
     User <|-- Organizer
 ```
 
-**Dva agregata: `Event` i `Booking`.** `Event` je vlasnik mjesta, `Booking` je vlasnik novca. Granica
-je namjerno tu — rezervacija ne dira inventar sama, nego `BookingService` pomjera oba zajedno. To je
-jedino mjesto u sistemu gdje se dva agregata mijenjaju u istoj operaciji, i to je svjesno tako da se
-kod prelaska na pravu bazu tačno zna gdje ide transakcija.
+Dva su agregata. `Event` je vlasnik mjesta, `Booking` je vlasnik novca. Granicu sam postavila tu jer
+se to dvoje mijenja iz različitih razloga. Jedino ih `BookingService` pomjera zajedno, pa se tačno zna
+gdje bi išla transakcija kad bi došla prava baza.
 
-**Inventar je podijeljen na tri kante** (`TicketAllocation`): `Available`, `Reserved`, `Sold`. Zbir je
-uvijek jednak kapacitetu, i to je invarijanta koju agregat održava sam. Zahvaljujući tome,
-napuštena kupovina i otkazana plaćena rezervacija vraćaju mjesta iz *različitih* kanti, što je razlika
-koju bi jedan brojač izgubio.
+Inventar nije jedan brojač nego tri kante: slobodno, zadržano, prodano. Njihov zbir je uvijek
+kapacitet. Zahvaljujući tome se napuštena kupovina i otkazana plaćena rezervacija vraćaju iz
+različitih kanti, što bi jedan brojač izgubio.
 
-**"Rasprodano" nije status.** Izvedeno je iz alokacija (`IsSoldOut`). Da je zapisano kao stanje, bilo
-bi još jedna stvar koja može zastarjeti.
+## Zašto sam birala baš ove obrasce
 
-**Cijene i inventar su odvojeni.** `Event.Reserve` vraća `TicketReservation` sa *kataloškim* cijenama,
-a šta će kupac stvarno platiti odlučuje `PricingEngine`. Rezervacija mjesta i obračun popusta se
-mijenjaju iz potpuno različitih razloga.
-
----
-
-## Gdje su OOP principi i zašto baš tu
-
-Ovo nije lista obrazaca radi liste — svaki je odgovor na konkretan problem u ovom domenu.
-
-### Nasljeđivanje: `Event` i tri podklase
-
-Podklase se ne razlikuju po podacima nego po **ponašanju**. Bazna klasa drži tri apstraktne tačke
-(`Category`, `MaxTicketsPerBooking`, `RefundPolicy`) i tri virtualne kuke (`OnValidateReservation`,
-`OnValidatePublish`, `OnScheduledMaintenance`) — *template method*.
+**Tri podklase događaja.** Koncert, konferencija i radionica se ne razlikuju po podacima nego po
+pravilima, pa su zaslužile nasljeđivanje. Da su razlike samo kozmetičke, bio bi dovoljan jedan enum.
 
 | | Koncert | Konferencija | Radionica |
 |---|---|---|---|
-| Ulaznica po rezervaciji | 6 | 20 (firme kupuju za timove) | 2 |
+| Karata po rezervaciji | 6 | 20 | 2 |
 | Dodatno pravilo | najviše 2 VIP karte | dvije sesije ne mogu na isti track u isto vrijeme | minimalan broj polaznika |
-| Uslov za objavu | mora imati standardnu kartu | mora imati program | minimum ≤ kapacitet |
+| Uslov za objavu | mora imati standardnu kartu | mora imati program | minimum ne prelazi kapacitet |
 | Povrat novca | 100% do 14 dana, 50% do 3 dana | 100% do 7 dana | 100% do 2 dana |
-| Periodična provjera | — | — | sama se otkaže 48h prije ako se ne popuni |
+| Sama se otkaže | ne | ne | 48h prije, ako se ne popuni |
 
-Ako ovi redovi ne bi mogli biti različiti, nasljeđivanje ovdje ne bi bilo zasluženo i tri klase bi
-trebale biti jedan `EventType` enum.
+**Politike povrata i pravila cijena su objekti, ne `if`-ovi.** Najviše mi se isplatilo to što
+`Booking` ne zna kojem tipu događaja pripada: politiku dobije izvana pri otkazivanju, pa četvrti tip
+događaja ne bi dirao tu klasu. Popusti se sabiraju do granice od 35%, a ako je pravilo probije,
+skrati se na preostali prostor umjesto da otpadne, da rezultat ne zavisi od redoslijeda.
 
-### Strategija: `IRefundPolicy` i `IPricingRule`
+**Filteri pretrage su specifikacije** koje se slažu sa `And`, `Or` i `Not`, pa je novo polje u
+pretrazi jedan `if`, a repozitorij se ne dira.
 
-Povrat novca je algoritam koji se razlikuje po tipu događaja, a popusti su algoritmi koji se
-razlikuju po kampanji. Oba su objekti, ne `if`-ovi.
+**Domenski događaji.** Ovo mi je najdraži dio. `BookingService` nigdje ne spominje listu čekanja.
+Kad se mjesta oslobode, `Event` objavi da su vraćena, a rukovalac obavijesti prve na redu. Isto važi
+za svih pet e-mail obavještenja: nijedan servis ne zna da notifikacije uopšte postoje.
 
-Posljedica koja se najviše isplati: **`Booking` ne zna kojem tipu događaja pripada.** Pri otkazivanju
-prima politiku izvana (`Cancel(IRefundPolicy policy, ...)`), pa dodavanje četvrtog tipa događaja ne
-dira klasu `Booking` uopšte.
+**Enkapsulacija.** Kolekcije izlaze kao `IReadOnlyList`, setteri su privatni, a mjesto se može
+zauzeti samo kroz `Event.Reserve`. Preprodaju ne sprječava provjera na pravom mjestu, nego to što
+drugog mjesta nema.
 
-`PricingEngine` prolazi kroz registrovana pravila po prioritetu i sabire popuste **do gornje granice**
-(35%). Kad bi pravilo probilo granicu, ono se **skrati na preostali prostor** umjesto da se odbaci —
-tako rezultat ne zavisi od toga kojim redom se granica dostigne.
+**Uloge i vlasništvo.** `Customer` i `Organizer` su podklase, ne zastavica. Najvažniju provjeru,
+da događaj mijenja samo njegov vlasnik, stavila sam u sam agregat: `Publish`, `Cancel`, `Reschedule`
+i ostale traže identitet pozivaoca kao parametar, pa servis ne može zaboraviti provjeru.
 
-### Specifikacija: pretraga
+**Prijava.** `IAuthenticator` odgovara samo na pitanje ko zove. Šta taj neko smije ostaje na
+agregatu i na filtriranju menija. Odbijena prijava namjerno ne kaže zašto je odbijena, jer bi
+razlika između nepoznate adrese i neispravnog formata odala koje adrese postoje.
 
-Filteri su objekti (`EventInCategorySpecification`, `EventWithinBudgetSpecification`, …) koje
-`EventSearchCriteria` slaže operatorima `And` / `Or` / `Not`. Zahvaljujući tome, novo polje u pretrazi
-je jedan `if` u `ToSpecification()`, a repozitorij se ne dira. Alternativa — `Func<Event, bool>`
-razbacan po servisima — ne može se ni imenovati ni ponovo upotrijebiti.
+**Vrijednosni objekti.** `Money` zaokružuje jednom i odbija sabiranje različitih valuta. Jaki
+identifikatori znače da zamjena kupca i događaja ne prođe kompajler. Baznu klasu za njih nisam
+pisala jer `record` već daje strukturnu jednakost.
 
-### Domenski događaji i observer
+**Greške su dvije vrste.** `DomainException` znači da je korisnik tražio nešto što posao ne
+dozvoljava, i njegova poruka ide pravo na ekran. `ArgumentException` znači da griješi kod, i to
+korisnik ne treba vidjeti.
 
-Agregati bilježe šta se desilo (`BookingConfirmed`, `TicketsReleased`, `EventRescheduled`), a
-`DomainEventDispatcher` to isporuči rukovaocima nakon što je operacija završena.
+## Simulacija vremena
 
-Najbolji primjer koristi: **`BookingService` ni na jednom mjestu ne spominje listu čekanja.** Kada se
-mjesta oslobode, `Event` objavi `TicketsReleasedDomainEvent`, a `WaitlistNotificationHandler` obavijesti
-prve na redu. Ista stvar sa svih pet e-mail obavještenja — nijedan servis ne zna da notifikacije
-postoje.
+Ovo je stvar na koju sam potrošila najviše razmišljanja.
 
-Dispatcher prvo isprazni listu događaja pa tek onda poziva rukovaoce; inače bi rukovalac koji dirne
-isti agregat dodavao u listu po kojoj se upravo iterira.
+Skoro sve zanimljivo u ovoj domeni zavisi od vremena: early bird popust, rokovi za povrat novca,
+istek rezervacije, prozor prodaje karata, održivost radionice, zatvaranje događaja koji je prošao.
+Da sam pustila da pravila zovu `DateTimeOffset.UtcNow`, ništa od toga se ne bi moglo pokazati, samo
+opisati.
 
-### Enkapsulacija
+Zato vrijeme ulazi kroz `IClock`, a u konzoli sam napravila meni **Simulation** koji pomjera sat
+naprijed i pokreće zakazani posao. Onda se uživo vidi kako neplaćena rezervacija istekne i vrati
+mjesta, kako early bird popust nestane kad koncert padne ispod 30 dana, kako se radionica sama otkaže
+i svima vrati novac, i kako se prošli događaji zatvore. U produkciji bi se registrovao `SystemClock`
+i ništa drugo se ne bi mijenjalo.
 
-Sve kolekcije su izložene kao `IReadOnlyList<T>`, svi setteri su `private set`, a jedini način da se
-mjesto zauzme je `Event.Reserve`. Preprodaja nije spriječena provjerom na pravom mjestu — spriječena
-je time što drugog mjesta nema.
+Jedna stvar koju je korisno znati: vraćanje sata ne poništava ono što se već desilo. Otkazano ostaje
+otkazano. Vrijeme je ulaz u sistem, ne dugme za poništavanje.
 
-### Uloge i vlasništvo
+## Šta sam svjesno izostavila
 
-`User` je apstraktna, a `Customer` i `Organizer` su podklase — ne zastavica na jednoj klasi. Uloga se
-provjerava na tri mjesta, i svako od njih rješava drugu vrstu greške:
+Podaci su u memoriji, jer je zadatak o OOP dizajnu a ne o konfiguraciji baze. `IRepository` je zato
+namjerno malen, bez `Update` i `Remove`, jer se agregati mijenjaju kroz vlastite metode.
 
-| Provjera | Gdje | Šta sprječava |
-|---|---|---|
-| Događaje kreira samo organizator | `EventCatalogService` | kupac koji pokušava biti organizator |
-| Rezerviše samo kupac | `BookingService` | organizator koji rezerviše svoj događaj |
-| **Događaj mijenja samo njegov vlasnik** | `Event.EnsureManagedBy` | organizator A koji otkazuje događaj organizatora B |
+Prava konkurentnost ne postoji. Repozitoriji su zaključani pa se kolekcija ne može pokvariti, ali
+dvoje ljudi koji istovremeno grabe zadnje mjesto tražili bi transakciju. Sve što bi je tražilo već je
+u jednoj metodi `BookingService`, pa bi to bila lokalna izmjena.
 
-Treća je najvažnija i namjerno **živi u agregatu**, a ne u servisu. Vlasništvo je poslovno pravilo
-(„događaj pripada onome ko ga je napravio"), pa `Publish`, `Cancel`, `Reschedule`, `AddTicketType` i
-`AddSession` traže identitet pozivaoca kao parametar. Nijedan servis to ne može zaobići zaboravivši
-provjeru — kompajler ga tjera da odgovori na pitanje *ko ovo radi*.
+Sve je sinhrono, jer nema I/O i `async` bi bio ceremonija bez sadržaja.
 
-Jedini izuzetak je `CancelCore`, `protected` metoda kojom radionica sama sebe otkazuje kad ne skupi
-polaznike. Tu nema osobe koju bi trebalo autorizovati, a `protected` znači da servis ne može tim
-putem preskočiti provjeru.
+Prijava postoji kao granica, ali se ništa ne dokazuje. Lozinka bi se provjeravala protiv heša koji
+nestane kad se aplikacija ugasi, dakle izgled sigurnosti bez sigurnosti. Prava implementacija mijenja
+jednu klasu i jedan red registracije.
 
-U konzoli se ista uloga koristi za filtriranje menija: `IScreen` deklariše `RequiredRole`, pa kupac
-vidi pretragu i svoje rezervacije, a organizator upravljanje događajima i izvještaje. Filtriranje je
-jedan `Where` u `MainMenu` — ekran se nikad ne mora braniti sam.
+Konferencija se kroz konzolu ne može objaviti, jer traži program a ekran za dodavanje sesija nisam
+stigla napraviti. Domen to podržava i demo podaci ga koriste.
 
-Do menija se dolazi tek nakon prijave. `IAuthenticator` odgovara **samo** na pitanje ko je pozvao;
-šta taj neko smije ostaje na agregatu i na filtriranju iznad. Zato odbijena prijava ne kaže *zašto*
-je odbijena — nepoznata adresa i neispravan format daju isti odgovor, jer razlika između ta dva
-strancu odaje koje su adrese registrovane.
-
-### Vrijednosni objekti
-
-`Money`, `Percentage`, `DateRange`, `EmailAddress`, `BookingReference` i jaki identifikatori
-(`EventId`, `BookingId`, …). `Money` zaokružuje jednom, u konstruktoru, i odbija sabiranje različitih
-valuta. Jaki identifikatori znače da zamjena kupca i događaja ne prolazi kompajler.
-
-Namjerno **nema ručno pisane `ValueObject` bazne klase**: `record` i `readonly record struct` već daju
-strukturnu jednakost. `Money` i `Percentage` su strukture jer im je nulta vrijednost smislena;
-`DateRange` i `EmailAddress` su klase jer bi im podrazumijevana vrijednost bila besmislena, a ovako ih
-hvata nullable analiza.
-
-### Rukovanje greškama
-
-Dvije odvojene hijerarhije, jer su to dvije različite stvari:
-
-- `DomainException` — korisnik je tražio nešto što posao ne dozvoljava. Poruka je pisana za njega i
-  konzola je prikazuje direktno.
-- `ArgumentException` / `InvalidOperationException` — pozivajući kod griješi. Korisnik to ne treba
-  vidjeti.
-
-`InsufficientTicketsException` nosi i brojeve (`Requested`, `Available`), pa korisnički sloj može
-ponuditi listu čekanja bez novog upita.
-
----
-
-## Vrijeme kao zavisnost
-
-Pola ovog domena zavisi od vremena: early bird popust, prozori za povrat novca, isticanje rezervacije,
-prodajni prozor karata, održivost radionice, zatvaranje završenog događaja. Nijedno od toga se ne bi
-moglo pokazati u radu da pravila zovu `DateTimeOffset.UtcNow`.
-
-Zato postoji `IClock`, a konzola ga koristi za nešto što se inače rijetko vidi: **meni „Simulation“
-pomjera sat naprijed**. Rezervacija istekne, popust nestane, radionica se sama otkaže i vrati novac —
-uživo, umjesto u dokumentaciji. U produkciji se registruje `SystemClock` i ništa drugo se ne mijenja.
-
----
-
-## Svjesni kompromisi
-
-Stvari koje su odlučene ovako, a ne slučajno propuštene.
-
-**Podaci su u memoriji.** Zadatak traži OOP dizajn, ne konfiguraciju baze. `IRepository` je namjerno
-malen — nema `Update` ni `Remove`, jer ih ništa u sistemu ne treba: agregati se mijenjaju kroz vlastite
-metode, a događaji se otkazuju a ne brišu. Prava baza bi dodala *unit of work* oko toga.
-
-**Nema stvarne konkurentnosti.** Repozitoriji su zaključani pa se kolekcija ne može pokvariti, ali
-poslovna operacija nije atomična — dvoje ljudi koji istovremeno grabe posljednje mjesto trebali bi
-transakciju ili optimistično zaključavanje (`RowVersion` na alokaciji). Struktura je namijenjena za to:
-sve što bi tražilo transakciju već je u jednoj metodi `BookingService`.
-
-**Sve je sinhrono.** Nema I/O, pa bi `async` ovdje bio ceremonija bez sadržaja.
-
-**`EventCatalogService` zavisi od `BookingService`.** Otkazivanje događaja mora otkazati i sve
-rezervacije. Moglo je i preko rukovaoca domenskog događaja, ali to skriva tok izvršavanja za nešto
-što nije nuspojava nego dio same operacije. Rukovaoci ovdje šalju obavještenja, ne mijenjaju novac.
-
-**Notifikacije završavaju u `NotificationInbox`.** Ispis usred menija bi razbio ekran; ovako se u
-meniju „Notification inbox“ vidi tačno ono što bi mail server dobio.
-
-**Prijava postoji, ali se ništa ne dokazuje.** `IAuthenticator` je granica na pravom mjestu — bez
-prijave se ne dolazi do menija — ali `DirectoryAuthenticator` iza nje samo traži poznatu adresu.
-Lozinka bi se ovdje provjeravala protiv heša koji nestaje sa procesom, dakle izgled sigurnosti bez
-sigurnosti. Prava implementacija — lozinka, token, SSO — mijenja tu jednu klasu i jedan red
-registracije, jer sve iznad zavisi od interfejsa. Autentifikacija i autorizacija su namjerno
-razdvojene: ko si pita `IAuthenticator`, a šta smiješ odlučuju agregat i meni.
-
-**Tri analizatorska pravila su isključena**, svako sa obrazloženjem u `.editorconfig` — najvažnije
-CA1716, koje traži da se klasa `Event` preimenuje jer je `Event` ključna riječ u VB-u. Ovo je
-aplikacija, a ne biblioteka, i „događaj“ je riječ koju koristi posao.
-
-Ostatak koda se gradi sa `TreatWarningsAsErrors` i `latest-recommended` analizatorima — **nula upozorenja**.
-
----
+Tri analizatorska pravila su isključena, svako sa obrazloženjem u `.editorconfig`. Ostalo se gradi sa
+`TreatWarningsAsErrors`, dakle upozorenje ruši build, i trenutno ih nema nijedno.
 
 ## Kako se ovo proširuje
 
-Test proširivosti nije „može li se“, nego **koliko postojećih fajlova se mora dirati**.
+Mjerila sam po tome koliko postojećih fajlova treba dirati.
 
-**Novi tip događaja** (npr. festival na više dana i lokacija): jedna klasa koja nasljeđuje `Event` i
-implementira tri člana. `Booking`, `PricingEngine`, repozitoriji i pretraga se ne diraju.
+Novi tip događaja je jedna klasa koja nasljeđuje `Event`. Novi popust je jedna klasa i jedan red
+registracije. Novi filter pretrage je jedna specifikacija i jedan `if`. Prava baza su nove
+implementacije repozitorija, a domen ostaje netaknut jer u njemu nema ni atributa ni baznih klasa
+ORM-a. Web API umjesto konzole ne bi dirao aplikacijski sloj, jer bi kontroleri zvali iste servise
+koje zovu i ekrani.
 
-**Novi popust** (npr. promo kod): jedna klasa koja implementira `IPricingRule` i jedan red u
-`ApplicationServiceRegistration`. `PricingEngine` se ne mijenja — pravila skuplja kroz DI.
-
-**Novi filter pretrage**: jedna specifikacija i jedan `if` u `EventSearchCriteria.ToSpecification()`.
-
-**Slanje pravih e-mailova**: nova implementacija `INotificationChannel`, jedna promijenjena
-registracija. Rukovaoci ne znaju razliku.
-
-**Prava baza**: nove implementacije `IEventRepository` i drugova. Domen ostaje netaknut — nema
-atributa, nema baznih klasa ORM-a, ništa.
-
-**Web API umjesto konzole**: aplikacijski sloj se ne dira. Kontroleri pozivaju iste servise koje
-pozivaju i ekrani.
-
----
-
-## Struktura repozitorija
+## Struktura
 
 ```
 src/
   EventBooking.Domain/            bez ijedne zavisnosti
-    Common/                       Entity, AggregateRoot, Guard, IDomainEvent
-    Entities/                     Event + tri podklase, Booking, User + podklase, Venue, TicketType
+    Common/                       Entity, AggregateRoot, Guard
+    Entities/                     Event i tri podklase, Booking, User, Venue, TicketType
     ValueObjects/                 Money, Percentage, DateRange, EmailAddress, identifikatori
     Enums/                        statusi, kategorije, nivoi karata i članstva
-    Interfaces/                   IClock, repozitoriji, IPricingRule, IRefundPolicy, ISpecification
-    Specifications/               Specification<T> i filteri kataloga
+    Interfaces/                   IClock, repozitoriji, IPricingRule, IRefundPolicy
+    Specifications/               filteri kataloga
     DomainEvents/                 događaji rezervacije i događaja
-    Pricing/                      PricingEngine + Rules/
+    Pricing/                      PricingEngine i pravila
     Refunds/                      politike povrata
     Exceptions/                   DomainException i potomci
-  EventBooking.Application/
-    Authentication/               IAuthenticator + implementacija
-    Catalog/                      EventCatalogService, kriteriji pretrage
-    Bookings/                     BookingService
-    Maintenance/                  MaintenanceService
-    Reporting/                    ReportingService + read modeli
-    Notifications/                kanal, rukovaoci domenskih događaja
-  EventBooking.Infrastructure/
-    Persistence/                  in-memory repozitoriji
-    Time/                         SystemClock, AdjustableClock
-    Messaging/                    DomainEventDispatcher
-    Seeding/                      DemoDataSeeder
-  EventBooking.ConsoleApp/
-    Screens/                      meni i ekrani
-    Ui/                           IUserInterface, ConsoleUi, formatiranje
+  EventBooking.Application/       servisi, izvještaji, notifikacije, prijava
+  EventBooking.Infrastructure/    in-memory repozitoriji, sat, dispatcher, demo podaci
+  EventBooking.ConsoleApp/        meni, ekrani, formatiranje
 ```
